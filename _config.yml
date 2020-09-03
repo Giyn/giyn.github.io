@@ -3,11 +3,11 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
+title: Giyn's Blog
 subtitle: ''
 description: ''
 keywords:
-author: John Doe
+author: Giyn
 language: en
 timezone: ''
 
@@ -107,3 +107,13 @@ deploy:
   repo: https://github.com/Giyn/giyn.github.io
   branch: master
   message: Update Hexo Static Content
+
+# 关闭 highlight
+#highlight:
+#  enable: false
+# 启用 prism
+#prismjs:
+#  enable: true
+#  preprocess: true
+#  line_number: false
+#  tab_replace: ""
