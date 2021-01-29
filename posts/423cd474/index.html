@@ -1,0 +1,346 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="Giyn"><meta name="copyright" content="Giyn"><meta name="generator" content="Hexo 5.1.1"><meta name="theme" content="hexo-theme-yun"><title>requests 库高级用法 | Giyn's Blog</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="none" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.1.19/dist/yun/yun-markdown.min.css"><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>document.addEventListener("DOMContentLoaded", () => {
+  [".post-card",".post-content img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+});
+</script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"></script><script>document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false},
+      {left: "\\(", right: "\\)", display: false},
+      {left: "\\[", right: "\\]", display: true}
+    ]
+  });
+});</script><link rel="shortcut icon" type="image/svg+xml" href="/Giyn.ico"><link rel="mask-icon" href="/Giyn.ico" color="#6200ee"><link rel="alternate icon" href="/yun.ico"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="preload" href="/js/utils.js" as="script"><link rel="preload" href="/js/hexo-theme-yun.js" as="script"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="/css/hexo-theme-yun.css"><link rel="alternate" href="/atom.xml" title="Giyn's Blog" type="application/atom+xml"><script id="yun-config">
+    const Yun = window.Yun || {};
+    window.CONFIG = {"root":"/","title":"许继元的博客","version":"1.0.0","anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"/data/sentences.json"},"local_search":{"path":"/search.xml"},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]}};
+  </script><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><meta name="description" content="requests 库高级用法requests 库的基本用法有 GET、POST 请求以及 Response 对象等等，但 requests 库的功能十分强大，它能做到完成 HTTP 的所有操作。 文件上传requests 库可以模拟提交一些数据，例如有的网站需要上传文件： files &#x3D; &amp;#123;&#39;file&#39;: open(&#39;Helper.ico&#39;, &#39;rb&#39;)&amp;#125; response &#x3D;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="requests 库高级用法">
+<meta property="og:url" content="http://giyn.work/posts/423cd474/index.html">
+<meta property="og:site_name" content="Giyn&#39;s Blog">
+<meta property="og:description" content="requests 库高级用法requests 库的基本用法有 GET、POST 请求以及 Response 对象等等，但 requests 库的功能十分强大，它能做到完成 HTTP 的所有操作。 文件上传requests 库可以模拟提交一些数据，例如有的网站需要上传文件： files &#x3D; &amp;#123;&#39;file&#39;: open(&#39;Helper.ico&#39;, &#39;rb&#39;)&amp;#125; response &#x3D;">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2020/10/01/tHM9EuYAxXz267S.png">
+<meta property="og:image" content="https://i.loli.net/2020/10/01/8kd16Urb9NF4eEA.png">
+<meta property="og:image" content="https://i.loli.net/2020/10/02/HxDkENPaO5WbCqs.png">
+<meta property="og:image" content="https://i.loli.net/2020/10/02/VPOoMxQfdcyYraW.png">
+<meta property="og:image" content="https://i.loli.net/2020/10/02/DYNQWw4zsun2glc.png">
+<meta property="article:published_time" content="2020-09-30T11:48:00.000Z">
+<meta property="article:modified_time" content="2020-10-02T07:08:17.470Z">
+<meta property="article:author" content="Giyn">
+<meta property="article:tag" content="requests">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/10/01/tHM9EuYAxXz267S.png"><script src="/js/ui/mode.js"></script><link id="light-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism.css" media="(prefers-color-scheme: light)"><link id="dark-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism-tomorrow.css" media="(prefers-color-scheme: dark)"></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script defer src="/js/ui/fireworks.js"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="Table of Contents"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="Overview"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info mickey-mouse"><a class="site-author-avatar" href="/about/" title="Giyn"><img width="96" loading="lazy" src="/images/avatar.png" alt="Giyn"></a><div class="site-author-name"><a href="/about/">Giyn</a></div><a class="site-name" href="/about/site.html">Giyn's Blog</a><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="Home"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="Archives"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">60</span></a></div><div class="site-state-item"><a href="/categories/" title="Categories"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">21</span></a></div><div class="site-state-item"><a href="/tags/" title="Tags"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">41</span></a></div><a class="site-state-item hty-icon-button" href="/about/"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-open-arm-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="/atom.xml" title="RSS" target="_blank" style="color:orange"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-rss-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/Giyn" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="mailto:giyn.jy@gmail.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="http://wpa.qq.com/msgrd?v=3&amp;uin=490601115&amp;site=qq&amp;menu=yes" title="QQ" target="_blank" style="color:#12B7F5"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-qq-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://space.bilibili.com/443380473" title="bilibili" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://twitter.com/jiyuan_xu" title="Twitter" target="_blank" style="color:#1da1f2"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-twitter-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#requests-%E5%BA%93%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95"><span class="toc-number">1.</span> <span class="toc-text">requests 库高级用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0"><span class="toc-number">1.1.</span> <span class="toc-text">文件上传</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Cookies"><span class="toc-number">1.2.</span> <span class="toc-text">Cookies</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Session-%E7%BB%B4%E6%8C%81"><span class="toc-number">1.3.</span> <span class="toc-text">Session 维持</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SSL-%E8%AF%81%E4%B9%A6%E9%AA%8C%E8%AF%81"><span class="toc-number">1.4.</span> <span class="toc-text">SSL 证书验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B6%85%E6%97%B6%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.5.</span> <span class="toc-text">超时设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81"><span class="toc-number">1.6.</span> <span class="toc-text">身份认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%90%86%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.7.</span> <span class="toc-text">代理设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Prepared-Request"><span class="toc-number">1.8.</span> <span class="toc-text">Prepared Request</span></a></li></ol></li></ol></div></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="post-block" itemscope itemtype="https://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://giyn.work/posts/423cd474/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="Giyn"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="Giyn's Blog"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">requests 库高级用法<a class="post-edit-link" href="https://github.com/Giyn/giyn.github.io/tree/hexo/source/_posts/requests 库高级用法.md" target="_blank" title="Edit this post" rel="noopener"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-edit-line"></use></svg></a></h1><div class="post-meta"><div class="post-time" style="display:block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <span class="post-meta-icon-text">Posted on</span> <time title="Created: 2020-09-30 19:48:00" itemprop="dateCreated datePublished" datetime="2020-09-30T19:48:00+08:00">2020-09-30</time><span class="post-meta-divider">-</span><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-2-line"></use></svg></span> <span class="post-meta-icon-text">Edited on</span> <time title="Modified: 2020-10-02 15:08:17" itemprop="dateModified" datetime="2020-10-02T15:08:17+08:00">2020-10-02</time></div><span class="post-count"><span class="post-symbolcount"><span class="post-meta-item-icon" title="Words count in article"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-file-word-line"></use></svg></span> <span title="Words count in article">3.1k</span><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Reading time"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-timer-line"></use></svg></span> <span title="Reading time">13m</span></span></span><div class="post-classify"><span class="post-category"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span> <span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category" href="/categories/requests/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">requests</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag" href="/tags/requests/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">requests</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body" style="--smc-primary:#6200ee;"><h2 id="requests-库高级用法"><a href="#requests-库高级用法" class="headerlink" title="requests 库高级用法"></a>requests 库高级用法</h2><p>requests 库的基本用法有 GET、POST 请求以及 Response 对象等等，但 requests 库的功能十分强大，它能做到完成 HTTP 的所有操作。</p>
+<h3 id="文件上传"><a href="#文件上传" class="headerlink" title="文件上传"></a>文件上传</h3><p>requests 库可以模拟提交一些数据，例如有的网站需要上传文件：</p>
+<pre class="language-python" data-language="python"><code class="language-python">files <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token string">'file'</span><span class="token punctuation">:</span> <span class="token builtin">open</span><span class="token punctuation">(</span><span class="token string">'Helper.ico'</span><span class="token punctuation">,</span> <span class="token string">'rb'</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span>
+response <span class="token operator">=</span> requests<span class="token punctuation">.</span>post<span class="token punctuation">(</span><span class="token string">'http://httpbin.org/post'</span><span class="token punctuation">,</span> files<span class="token operator">=</span>files<span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>response<span class="token punctuation">.</span>text<span class="token punctuation">)</span></code></pre>
+
+<p><strong>Result：</strong></p>
+<pre class="language-none"><code class="language-none">&#123;
+  &quot;args&quot;: &#123;&#125;, 
+  &quot;data&quot;: &quot;&quot;, 
+  &quot;files&quot;: &#123;
+    &quot;file&quot;: &quot;data:application&#x2F;octet-stream;base64,AAABAA……&#125;, 
+  &quot;form&quot;: &#123;&#125;, 
+  &quot;headers&quot;: &#123;
+    &quot;Accept&quot;: &quot;*&#x2F;*&quot;, 
+    &quot;Accept-Encoding&quot;: &quot;gzip, deflate&quot;, 
+    &quot;Content-Length&quot;: &quot;67792&quot;, 
+    &quot;Content-Type&quot;: &quot;multipart&#x2F;form-data; boundary&#x3D;d3323082de17a33701180820874930a0&quot;, 
+    &quot;Host&quot;: &quot;httpbin.org&quot;, 
+    &quot;User-Agent&quot;: &quot;python-requests&#x2F;2.22.0&quot;, 
+    &quot;X-Amzn-Trace-Id&quot;: &quot;Root&#x3D;1-5f7478d3-6d46fa5d3ce2b731603098bd&quot;
+  &#125;, 
+  &quot;json&quot;: null, 
+  &quot;origin&quot;: &quot;23.99.107.243&quot;, 
+  &quot;url&quot;: &quot;http:&#x2F;&#x2F;httpbin.org&#x2F;post&quot;
+&#125;</code></pre>
+
+<p><a target="_blank" rel="noopener" href="http://httpbin.org/post">http://httpbin.org/post</a> 会返回 HTTP 响应，其中包含 files 字段，而 form 字段是空的，这说明文件上传部分会单独有一个 files 字段来标识。</p>
+<h3 id="Cookies"><a href="#Cookies" class="headerlink" title="Cookies"></a>Cookies</h3><p>使用 requests 获取和设置 Cookies 只需一步。</p>
+<p>获取 Cookies：</p>
+<pre class="language-python" data-language="python"><code class="language-python">response <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'http://www.baidu.com'</span><span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>response<span class="token punctuation">.</span>cookies<span class="token punctuation">)</span>
+
+<span class="token keyword">for</span> key<span class="token punctuation">,</span> value <span class="token keyword">in</span> response<span class="token punctuation">.</span>cookies<span class="token punctuation">.</span>items<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>key <span class="token operator">+</span> <span class="token string">'='</span> <span class="token operator">+</span> value<span class="token punctuation">)</span></code></pre>
+
+<p>Result：</p>
+<pre class="language-none"><code class="language-none">&lt;RequestsCookieJar[&lt;Cookie BDORZ&#x3D;27315 for .baidu.com&#x2F;&gt;]&gt;
+BDORZ&#x3D;27315</code></pre>
+
+<p>首先调用 cookies 属性即可获取 HTTP 请求的 Cookies 信息，可以发现它是 RequestCookieJar 类型，接着用 items 方法将其转化为元组组成的列表，遍历输出每一个 Cookie 的名称和值，实现 Cookie 的遍历解析。</p>
+<p>此处可以用 Cookie 来维持登录状态，以 GitHub 为测试样例，首先登录 GitHub，接着使用 F12 查看登录的 Headers 信息，并将 Headers 中的 Cookie 内容复制下来：</p>
+<p><img src="https://i.loli.net/2020/10/01/tHM9EuYAxXz267S.png" alt="1c8be6f25a7362075727baa795a7015.png" loading="lazy"></p>
+<pre class="language-python" data-language="python"><code class="language-python">headers <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+    <span class="token string">'Cookie'</span><span class="token punctuation">:</span> <span class="token string">'_octo=GH1.1.1179373472.1580811112; _ga=GA1.2.1111800227.1581126066; _device_id=6eb9156285db6a78b8bb1372cd2ef157; experiment:homepage_signup_flow=eyJ2ZXJzaW9uIjoiMSIsInJvbGxPdXRQbGFjZW1lbnQiOjczLjQxNjA3MzcwNzI2MjA3LCJzdWJncm91cCI6bnVsbCwiY3JlYXRlZEF0IjoiMjAyMC0wNC0xN1QwNToyODowOC40OTJaIiwidXBkYXRlZEF0IjoiMjAyMC0wNC0xN1QwNTozNjoyNi40MzhaIn0=; user_session=aLl4gq2OaWXwA6gA-CBd69fuXfsPpOZRjl9hLzvlspI_cDe9; __Host-user_session_same_site=aLl4gq2OaWXwA6gA-CBd69fuXfsPpOZRjl9hLzvlspI_cDe9; logged_in=yes; dotcom_user=Giyn; tz=Asia%2FShanghai; has_recent_activity=1; _gat=1; _gh_sess=……'</span><span class="token punctuation">,</span>
+    <span class="token string">'User-Agent'</span><span class="token punctuation">:</span> <span class="token string">'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span>
+r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://github.com/'</span><span class="token punctuation">,</span> headers<span class="token operator">=</span>headers<span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>text<span class="token punctuation">)</span></code></pre>
+
+<p>返回结果中包含了登录后才能显示的 GitHub 用户名信息：</p>
+<p><img src="https://i.loli.net/2020/10/01/8kd16Urb9NF4eEA.png" alt="5839e0156e75445d78b89942780699e.png" loading="lazy"></p>
+<p>此处也可以通过 cookies 参数设置 Cookies 信息，首先可以构造一个 RequestsCookieJar 对象，接着把刚才复制的 Cookie 处理一下并赋值：</p>
+<pre class="language-python" data-language="python"><code class="language-python">cookies <span class="token operator">=</span> <span class="token string">'_octo=GH1.1.1179373472.1580811112; _ga=GA1.2.1111800227.1581126066; _device_id=6eb9156285db6a78b8bb1372cd2ef157; experiment:homepage_signup_flow=eyJ2ZXJzaW9uIjoiMSIsInJvbGxPdXRQbGFjZW1lbnQiOjczLjQxNjA3MzcwNzI2MjA3LCJzdWJncm91cCI6bnVsbCwiY3JlYXRlZEF0IjoiMjAyMC0wNC0xN1QwNToyODowOC40OTJaIiwidXBkYXRlZEF0IjoiMjAyMC0wNC0xN1QwNTozNjoyNi40MzhaIn0=; user_session=aLl4gq2OaWXwA6gA-CBd69fuXfsPpOZRjl9hLzvlspI_cDe9; __Host-user_session_same_site=aLl4gq2OaWXwA6gA-CBd69fuXfsPpOZRjl9hLzvlspI_cDe9; logged_in=yes; dotcom_user=Giyn; tz=Asia%2FShanghai; has_recent_activity=1; _gat=1; _gh_sess=……'</span>
+jar <span class="token operator">=</span> requests<span class="token punctuation">.</span>cookies<span class="token punctuation">.</span>RequestsCookieJar<span class="token punctuation">(</span><span class="token punctuation">)</span>
+headers <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+    <span class="token string">'User-Agent'</span><span class="token punctuation">:</span> <span class="token string">'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">for</span> cookie <span class="token keyword">in</span> cookies<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">';'</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    key<span class="token punctuation">,</span> value <span class="token operator">=</span> cookie<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">'='</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span>
+    jar<span class="token punctuation">.</span><span class="token builtin">set</span><span class="token punctuation">(</span>key<span class="token punctuation">,</span> value<span class="token punctuation">)</span>
+r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://github.com/'</span><span class="token punctuation">,</span> cookies<span class="token operator">=</span>jar<span class="token punctuation">,</span> headers<span class="token operator">=</span>headers<span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>text<span class="token punctuation">)</span></code></pre>
+
+<p>此处首先新建一个 RequestCookieJar 对象，然后将复制下来的 cookies 利用 split 方法分割，接着利用 set 方法设置好每个 Cookie 的 key 和 value，最后通过调用 requests 的 get 方法并传递给 cookies 参数即可。</p>
+<p>运行代码，返回结果中同样包含了登录后才能显示的 GitHub 用户名信息：</p>
+<p><img src="https://i.loli.net/2020/10/02/HxDkENPaO5WbCqs.png" alt="01c824ee07f20b10e4d3096a21cef45.png" loading="lazy"></p>
+<h3 id="Session-维持"><a href="#Session-维持" class="headerlink" title="Session 维持"></a>Session 维持</h3><p>在 requests 库中，如果直接使用 get 或 post 等方法虽然可以做到模拟 HTTP 请求，但这实际上相当于不同的 Session，即相当于用两个浏览器打开了不同的页面。</p>
+<p>例如，第一个请求利用 post 方法登录了某个网站，第二次想获取成功登录后的个人信息，又用了一次 get 方法去请求个人信息页面，这相当于打开了两个浏览器，是两个完全不相关的 Session，因此是无法获取个人信息的。</p>
+<blockquote>
+<p>不同浏览器之间的 Session 是不能共享的，Session 是与用户相关的，一个人在同一台机上打开两个浏览器，即使地址一样也是两个 Session。</p>
+</blockquote>
+<blockquote>
+<p>在两次请求时设置一样的 Cookies 可以解决问题，但这样很烦琐，下面有更简单的解决方法。</p>
+</blockquote>
+<p>解决上述问题的主要方法就是维持同一个 Session，相当于打开一个新的浏览器选项卡而不是新开一个浏览器页面，实现该需求就要用到 Session 对象。</p>
+<p>利用 Session 对象可以方便地维护一个 Session，而且不用担心 Cookies 的问题，Session 对象会自动处理好：</p>
+<ul>
+<li><strong>无 Session 对象：</strong></li>
+</ul>
+<pre class="language-python" data-language="python"><code class="language-python">requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'http://httpbin.org/cookies/set/number/Giyn'</span><span class="token punctuation">)</span>
+r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'http://httpbin.org/cookies'</span><span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>text<span class="token punctuation">)</span></code></pre>
+
+<p>测试网址为 <a target="_blank" rel="noopener" href="http://httpbin.org/cookies/set/name/Giyn">http://httpbin.org/cookies/set/name/Giyn</a>，对该网址发送请求时，可以设置一个 cookie，名称叫作 name，内容是 Giyn，接着又请求了 <a target="_blank" rel="noopener" href="http://httpbin.org/cookies">http://httpbin.org/cookies</a>，此网址可以获取当前的 Cookies。</p>
+<p>运行结果：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token punctuation">&#123;</span>
+  <span class="token string">"cookies"</span><span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>由于两次请求的 Cookie 不同，因此无法获取所需信息。</p>
+<ul>
+<li><strong>有 Session 对象：</strong></li>
+</ul>
+<pre class="language-python" data-language="python"><code class="language-python">s <span class="token operator">=</span> requests<span class="token punctuation">.</span>Session<span class="token punctuation">(</span><span class="token punctuation">)</span>
+s<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'http://httpbin.org/cookies/set/name/Giyn'</span><span class="token punctuation">)</span>
+r <span class="token operator">=</span> s<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'http://httpbin.org/cookies'</span><span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>text<span class="token punctuation">)</span></code></pre>
+
+<p>运行结果：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token punctuation">&#123;</span>
+  <span class="token string">"cookies"</span><span class="token punctuation">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Giyn"</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>使用了 Session 对象即可成功获取信息。总的来说，利用 Session 对象可以做到模拟同一个 Session 而不用担心 Cookies 的问题，它通常用于模拟登录成功之后再进行下一步的操作。</p>
+<h3 id="SSL-证书验证"><a href="#SSL-证书验证" class="headerlink" title="SSL 证书验证"></a>SSL 证书验证</h3><p>如今许多网站都要求使用 HTTPS 协议，但是有些网站没有设置好 HTTPS 证书，或者网站的 HTTPS 证书不被 CA 机构认可，此时这些网站可能就会出现 SSL 证书错误的提示。</p>
+<p>如果用 Chrome 浏览器打开这个<a target="_blank" rel="noopener" href="https://static2.scrape.cuiqingcai.com/">示例网站</a>，则会提示「您的连接不是私密连接」这样的错误：</p>
+<p><img src="https://i.loli.net/2020/10/02/VPOoMxQfdcyYraW.png" alt="2c65ea9858397f2974ea76f9eca10f5.png" loading="lazy"></p>
+<blockquote>
+<p>可以在浏览器中通过设置来忽略证书的验证。</p>
+</blockquote>
+<p>使用 requests 库对这类网站发出请求：</p>
+<pre class="language-python" data-language="python"><code class="language-python">r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://static2.scrape.cuiqingcai.com/'</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>status_code<span class="token punctuation">)</span></code></pre>
+
+<p>运行结果：</p>
+<pre class="language-python" data-language="python"><code class="language-python">SSLError<span class="token punctuation">:</span> HTTPSConnectionPool<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">'static2.scrape.cuiqingcai.com'</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">443</span><span class="token punctuation">)</span><span class="token punctuation">:</span> Max retries exceeded <span class="token keyword">with</span> url<span class="token punctuation">:</span> <span class="token operator">/</span> <span class="token punctuation">(</span>Caused by SSLError<span class="token punctuation">(</span>SSLError<span class="token punctuation">(</span><span class="token string">"bad handshake: Error([('SSL routines', 'tls_process_server_certificate', 'certificate verify failed')])"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span></code></pre>
+
+<p>可以看到抛出了 SSLError 错误，因为请求的 URL 的证书是无效的，若实在需要爬取这个网站，可以使用 verify 参数控制是否验证证书。如果将 verify 参数设置为 False，在请求时就不会再验证证书是否有效；如果不加 verify 参数，默认值是 True，会自动验证。</p>
+<p><strong>设置 verify 参数不验证 SSL 证书：</strong></p>
+<pre class="language-python" data-language="python"><code class="language-python">r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://static2.scrape.cuiqingcai.com/'</span><span class="token punctuation">,</span> verify<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>status_code<span class="token punctuation">)</span></code></pre>
+
+<p>运行结果：</p>
+<pre class="language-python" data-language="python"><code class="language-python">\Anaconda\lib\site<span class="token operator">-</span>packages\urllib3\connectionpool<span class="token punctuation">.</span>py<span class="token punctuation">:</span><span class="token number">1004</span><span class="token punctuation">:</span> InsecureRequestWarning<span class="token punctuation">:</span> Unverified HTTPS request <span class="token keyword">is</span> being made to host <span class="token string">'static2.scrape.cuiqingcai.com'</span><span class="token punctuation">.</span> Adding certificate verification <span class="token keyword">is</span> strongly advised<span class="token punctuation">.</span> See<span class="token punctuation">:</span> https<span class="token punctuation">:</span><span class="token operator">//</span>urllib3<span class="token punctuation">.</span>readthedocs<span class="token punctuation">.</span>io<span class="token operator">/</span>en<span class="token operator">/</span>latest<span class="token operator">/</span>advanced<span class="token operator">-</span>usage<span class="token punctuation">.</span>html<span class="token comment">#ssl-warnings</span>
+  InsecureRequestWarning<span class="token punctuation">,</span>
+<span class="token number">200</span></code></pre>
+
+<p>程序发出一个 Warning，它建议我们给它指定证书，此处可以通过设置忽略警告的方式来屏蔽该警告：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> requests<span class="token punctuation">.</span>packages <span class="token keyword">import</span> urllib3
+
+urllib3<span class="token punctuation">.</span>disable_warnings<span class="token punctuation">(</span><span class="token punctuation">)</span>
+r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://static2.scrape.cuiqingcai.com/'</span><span class="token punctuation">,</span> verify<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>status_code<span class="token punctuation">)</span></code></pre>
+
+<p>或者通过捕获警告到日志的方式忽略警告：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> logging
+
+logging<span class="token punctuation">.</span>captureWarnings<span class="token punctuation">(</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://static2.scrape.cuiqingcai.com/'</span><span class="token punctuation">,</span> verify<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>status_code<span class="token punctuation">)</span></code></pre>
+
+<p>此外也可以指定一个本地证书用作客户端证书，其可以是单个文件（包含密钥和证书）或一个包含两个文件路径的元组：</p>
+<pre class="language-python" data-language="python"><code class="language-python">r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://static2.scrape.cuiqingcai.com/'</span><span class="token punctuation">,</span> cert<span class="token operator">=</span><span class="token punctuation">(</span><span class="token string">'/path/server.crt'</span><span class="token punctuation">,</span> <span class="token string">'/path/server.key'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>status_code<span class="token punctuation">)</span></code></pre>
+
+
+
+<h3 id="超时设置"><a href="#超时设置" class="headerlink" title="超时设置"></a>超时设置</h3><p>在本机网络状况不好或者服务器网络响应延迟甚至无响应时，我们可能需要等待很久才能收到响应，甚至到最后收不到响应而报错。为了防止服务器不能及时响应，应该设置一个超时时间，即超过了这个时间还没有得到响应就报错。此处需要用到 timeout 参数，其时间的计算是从发出请求到服务器返回响应的时间：</p>
+<pre class="language-python" data-language="python"><code class="language-python">r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://httpbin.org/get'</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>status_code<span class="token punctuation">)</span></code></pre>
+
+<p>通过 timeout 参数，我们可以将超时时间设置为 1 秒，如果 1 秒内没有响应就抛出异常。</p>
+<p>实际上，请求分为两个阶段，即连接（connect）和读取（read），如上设置的 timeout 参数将用作 connect 和 read 二者的 timeout 总和，如果要分别指定，就可以传入一个元组：</p>
+<pre class="language-python" data-language="python"><code class="language-python">r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://httpbin.org/get'</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">,</span> <span class="token number">30</span><span class="token punctuation">)</span><span class="token punctuation">)</span></code></pre>
+
+<p>如果希望永久等待，可以直接将 timeout 设置为 None，或者直接留空（默认是 None）：</p>
+<pre class="language-python" data-language="python"><code class="language-python">r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://httpbin.org/get'</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span>
+<span class="token comment"># r = requests.get('https://httpbin.org/get')</span></code></pre>
+
+
+
+<h3 id="身份认证"><a href="#身份认证" class="headerlink" title="身份认证"></a>身份认证</h3><p>在访问某些设置了身份认证的网站时，例如：<a target="_blank" rel="noopener" href="https://static3.scrape.cuiqingcai.com/">https://static3.scrape.cuiqingcai.com/</a>，可能会遇到这样的认证窗口：</p>
+<p><img src="https://i.loli.net/2020/10/02/DYNQWw4zsun2glc.png" alt="90eb3bf4f8e066510c16b7ad2a6eaf8.png" loading="lazy"></p>
+<p>如果遇到了这种情况，是因为该网站启用了基本身份认证，英文叫作 HTTP Basic Access Authentication，它是一种<strong>用来允许网页浏览器或其他客户端程序在请求时提供用户名和口令形式的身份凭证</strong>的一种登录验证方式。</p>
+<p>如果遇到了上述情况，可以使用 requests 自带的身份认证功能，通过 auth 参数即可设置：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> requests<span class="token punctuation">.</span>auth <span class="token keyword">import</span> HTTPBasicAuth  
+
+r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://static3.scrape.cuiqingcai.com/'</span><span class="token punctuation">,</span> auth<span class="token operator">=</span>HTTPBasicAuth<span class="token punctuation">(</span><span class="token string">'admin'</span><span class="token punctuation">,</span> <span class="token string">'admin'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>status_code<span class="token punctuation">)</span></code></pre>
+
+<p>运行结果：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token number">200</span></code></pre>
+
+<p>上述示例网站的用户名和密码都是 admin，此处可以直接设置。如果用户名和密码都正确的话，请求时会自动认证成功，返回 200 状态码；如果认证失败，则返回 401 状态码。</p>
+<p>如果每次发出请求，参数都传一个 HTTPBasicAuth 类，则显得有点烦琐，requests 库提供了直接传一个元组的方法，它会默认使用 HTTPBasicAuth 这个类来认证：</p>
+<pre class="language-python" data-language="python"><code class="language-python">r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://static3.scrape.cuiqingcai.com/'</span><span class="token punctuation">,</span> auth<span class="token operator">=</span><span class="token punctuation">(</span><span class="token string">'admin'</span><span class="token punctuation">,</span> <span class="token string">'admin'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>status_code<span class="token punctuation">)</span></code></pre>
+
+<p>运行结果：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token number">200</span></code></pre>
+
+<p>此外，requests 库还提供了其他认证方式，如 OAuth 认证（需要安装 oauth 包：<code>pip install requests_oauthlib</code>）：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> requests_oauthlib <span class="token keyword">import</span> OAuth1
+
+url <span class="token operator">=</span> <span class="token string">'https://api.twitter.com/1.1/account/verify_credentials.json'</span>
+auth <span class="token operator">=</span> OAuth1<span class="token punctuation">(</span><span class="token string">'APP_KEY'</span><span class="token punctuation">,</span> <span class="token string">'APP_SECRET'</span><span class="token punctuation">,</span>
+              <span class="token string">'USER_OAUTH_TOKEN'</span><span class="token punctuation">,</span> <span class="token string">'USER_OAUTH_TOKEN_SECRET'</span><span class="token punctuation">)</span>
+requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span>url<span class="token punctuation">,</span> auth<span class="token operator">=</span>auth<span class="token punctuation">)</span></code></pre>
+
+<p><a target="_blank" rel="noopener" href="https://requests-oauthlib.readthedocs.org/">requests_oauthlib 官方文档</a></p>
+<h3 id="代理设置"><a href="#代理设置" class="headerlink" title="代理设置"></a>代理设置</h3><p>某些网站在经过频繁的请求之后，可能会弹出验证码，或者跳转到登录认证页面，甚至可能会直接封禁客户端的 IP，导致用户在一定时间段内无法访问。为了防止这种情况发生，需要设置代理来解决这个问题，此处需要用到 proxies 参数：</p>
+<pre class="language-python" data-language="python"><code class="language-python">proxies <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+	        <span class="token string">'http'</span><span class="token punctuation">:</span> <span class="token string">'http://'</span> <span class="token operator">+</span> <span class="token string">'113.194.28.190:9999'</span><span class="token punctuation">,</span>
+	        <span class="token string">'https'</span><span class="token punctuation">:</span> <span class="token string">'https://'</span> <span class="token operator">+</span> <span class="token string">'113.194.28.190:9999'</span> 
+		  <span class="token punctuation">&#125;</span>
+r <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'http://httpbin.org/get'</span><span class="token punctuation">,</span> proxies<span class="token operator">=</span>proxies<span class="token punctuation">)</span></code></pre>
+
+<p>如果代理需要使用上述的身份认证，可以使用类似 <code>http://user:password@host:port</code> 这样的语法来设置代理，即在代理的前面加上用户名和密码：</p>
+<pre class="language-python" data-language="python"><code class="language-python">proxy <span class="token operator">=</span> <span class="token string">'username:password@113.194.28.190:9999'</span></code></pre>
+
+<p>除了基本的 HTTP 代理外，requests 库还支持 SOCKS 协议的代理，（需要安装 socks 库：<code>pip3 install &quot;requests[socks]&quot;</code>）：</p>
+<pre class="language-python" data-language="python"><code class="language-python">proxies <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+    <span class="token string">'http'</span><span class="token punctuation">:</span> <span class="token string">'socks5://user:password@host:port'</span><span class="token punctuation">,</span>
+    <span class="token string">'https'</span><span class="token punctuation">:</span> <span class="token string">'socks5://user:password@host:port'</span>
+<span class="token punctuation">&#125;</span>
+requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'https://httpbin.org/get'</span><span class="token punctuation">,</span> proxies<span class="token operator">=</span>proxies<span class="token punctuation">)</span></code></pre>
+
+
+
+<h3 id="Prepared-Request"><a href="#Prepared-Request" class="headerlink" title="Prepared Request"></a>Prepared Request</h3><p>实际上，requests 发送请求时在内部构造了一个 Request 对象，并给这个对象赋予了各种参数，包括 url、headers、data 等，接着直接把这个 Request 对象发送出去，请求成功后返回一个 Response 对象，再对其解析即可。</p>
+<p>Request 对象实际上就是 Prepared Request。</p>
+<p>下面深入一下，试着不用 get 方法，而是直接构造一个 Prepared Request 对象：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> requests <span class="token keyword">import</span> Request<span class="token punctuation">,</span> Session
+
+url <span class="token operator">=</span> <span class="token string">'http://httpbin.org/post'</span>
+data <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token string">'name'</span><span class="token punctuation">:</span> <span class="token string">'Giyn'</span><span class="token punctuation">&#125;</span>
+headers <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token string">'User-Agent'</span><span class="token punctuation">:</span> <span class="token string">'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'</span>
+<span class="token punctuation">&#125;</span>
+s <span class="token operator">=</span> Session<span class="token punctuation">(</span><span class="token punctuation">)</span>
+req <span class="token operator">=</span> Request<span class="token punctuation">(</span><span class="token string">'POST'</span><span class="token punctuation">,</span> url<span class="token punctuation">,</span> data<span class="token operator">=</span>data<span class="token punctuation">,</span> headers<span class="token operator">=</span>headers<span class="token punctuation">)</span>
+prepped <span class="token operator">=</span> s<span class="token punctuation">.</span>prepare_request<span class="token punctuation">(</span>req<span class="token punctuation">)</span>
+r <span class="token operator">=</span> s<span class="token punctuation">.</span>send<span class="token punctuation">(</span>prepped<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>text<span class="token punctuation">)</span></code></pre>
+
+<p>此处引入了 Request 类，然后用 url、data 和 headers 参数构造了一个 Request 对象，此时需要再调用 Session 的 prepare_request 方法将其转换为一个 Prepared Request 对象，接着调用 send 方法发送。</p>
+<p>运行结果：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token punctuation">&#123;</span>
+  <span class="token string">"args"</span><span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> 
+  <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span> 
+  <span class="token string">"files"</span><span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> 
+  <span class="token string">"form"</span><span class="token punctuation">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Giyn"</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span> 
+  <span class="token string">"headers"</span><span class="token punctuation">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token string">"Accept"</span><span class="token punctuation">:</span> <span class="token string">"*/*"</span><span class="token punctuation">,</span> 
+    <span class="token string">"Accept-Encoding"</span><span class="token punctuation">:</span> <span class="token string">"gzip, deflate"</span><span class="token punctuation">,</span> 
+    <span class="token string">"Content-Length"</span><span class="token punctuation">:</span> <span class="token string">"9"</span><span class="token punctuation">,</span> 
+    <span class="token string">"Content-Type"</span><span class="token punctuation">:</span> <span class="token string">"application/x-www-form-urlencoded"</span><span class="token punctuation">,</span> 
+    <span class="token string">"Host"</span><span class="token punctuation">:</span> <span class="token string">"httpbin.org"</span><span class="token punctuation">,</span> 
+    <span class="token string">"User-Agent"</span><span class="token punctuation">:</span> <span class="token string">"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"</span><span class="token punctuation">,</span> 
+    <span class="token string">"X-Amzn-Trace-Id"</span><span class="token punctuation">:</span> <span class="token string">"Root=1-5f76d019-4ef039c66f7f2ff26bac88c3"</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span> 
+  <span class="token string">"json"</span><span class="token punctuation">:</span> null<span class="token punctuation">,</span> 
+  <span class="token string">"origin"</span><span class="token punctuation">:</span> <span class="token string">"211.97.3.238"</span><span class="token punctuation">,</span> 
+  <span class="token string">"url"</span><span class="token punctuation">:</span> <span class="token string">"http://httpbin.org/post"</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>其同样达到了 POST 方法的请求效果。</p>
+<p>使用 Request 对象即可将请求当作独立的对象来看待，在特定的需求中可以直接操作 Request 对象，以便更加灵活地实现请求的调度以及其他操作。</p>
+<p><a target="_blank" rel="noopener" href="http://docs.python-requests.org/">requests 库官方文档</a></p>
+</div><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="Donate" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="qr" style="display:none;"><div style="display:inline-block"><a href="/images/Ali-Pay.jpg"><img loading="lazy" src="/images/Ali-Pay.jpg" alt="Ali-Pay" title="Ali-Pay"></a><div><span style="color:#00A3EE"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-alipay-line"></use></svg></span></div></div><div style="display:inline-block"><a href="/images/WeChatPay.jpg"><img loading="lazy" src="/images/WeChatPay.jpg" alt="WeChat Pay" title="WeChat Pay"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>Post author: </strong>Giyn</li><li class="post-copyright-link"><strong>Post link: </strong><a href="http://giyn.work/posts/423cd474/" title="requests 库高级用法">http://giyn.work/posts/423cd474/</a></li><li class="post-copyright-license"><strong>Copyright Notice: </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> unless stating additionally.</li></ul><script>document.addEventListener('copy', function (event) {
+  const clipboardData = event.clipboardData || window.clipboardData;
+  if (!clipboardData) { return; }
+  const text = window.getSelection().toString();
+  if (text) {
+    event.preventDefault();
+    clipboardData.setData('text/plain', text + '\n\nPost author: Giyn\nPost link: http://giyn.work/posts/423cd474/\nCopyright Notice: All articles in this blog are licensed under CC BY-NC-SA 4.0 unless stating additionally.');
+  }
+});</script></section></article><div class="post-nav"><div class="post-nav-item"><a class="post-nav-prev" href="/posts/b123dfba/" rel="prev" title="使用 opencv-python 提取视频每一帧的图片"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-left-s-line"></use></svg><span class="post-nav-text">使用 opencv-python 提取视频每一帧的图片</span></a></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/3a002fbb/" rel="next" title="Multiple Dimensional Scaling 降维算法"><span class="post-nav-text">Multiple Dimensional Scaling 降维算法</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div></main><footer class="sidebar-translate" id="footer"><div class="copyright"><span>&copy; 2020 – 2021 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> Giyn</span></div><div class="powered"><span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> v5.1.1</span><span class="footer-separator">|</span><span>Theme - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.0.0</span></div><div class="live_time"><span>本博客已运行</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  window.setTimeout(blog_live_time, 1000);
+  const start = new Date('2020-09-03T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = " " + passDay + " 天 " + passHour + " 小时 " + passMinute + " 分 " + passSecond + " 秒";
+}
+blog_live_time();
+</script></div></footer><a class="hty-icon-button" id="goUp" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><a class="popup-trigger hty-icon-button icon-search" id="search" href="javascript:;" title="Search"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-search-line"></use></svg></span></a><script>window.addEventListener("DOMContentLoaded", () => {
+  // Handle and trigger popup window
+  document.querySelector(".popup-trigger").addEventListener("click", () => {
+    document.querySelector(".popup").classList.add("show");
+    setTimeout(() => {
+      document.querySelector(".search-input").focus();
+    }, 100);
+  });
+
+  // Monitor main search box
+  const onPopupClose = () => {
+    document.querySelector(".popup").classList.remove("show");
+  };
+
+  document.querySelector(".popup-btn-close").addEventListener("click", () => {
+    onPopupClose();
+  });
+
+  window.addEventListener("keyup", event => {
+    if (event.key === "Escape") {
+      onPopupClose();
+    }
+  });
+});
+</script><script src="/js/search/local-search.js" defer></script><div class="popup search-popup"><div class="search-header"><span class="popup-btn-close close-icon hty-icon-button"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-close-line"></use></svg></span></div><div class="search-input-container"><input class="search-input" id="local-search-input" type="text" placeholder="Searching..." value=""></div><div id="local-search-result"></div></div><script>const date = new Date();
+const today = (date.getMonth() + 1) + "-" + date.getDate()
+const mourn_days = ["4-4"]
+if (mourn_days.includes(today)) {
+  document.documentElement.style.filter = "grayscale(1)";
+}</script></div><script defer src="/js/utils.js"></script><script defer src="/js/hexo-theme-yun.js"></script></body></html>

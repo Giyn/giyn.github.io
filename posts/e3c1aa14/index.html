@@ -1,0 +1,316 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="Giyn"><meta name="copyright" content="Giyn"><meta name="generator" content="Hexo 5.1.1"><meta name="theme" content="hexo-theme-yun"><title>爬取豆瓣电影 Top250 的海报图片以及相关信息 | Giyn's Blog</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="none" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.1.19/dist/yun/yun-markdown.min.css"><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>document.addEventListener("DOMContentLoaded", () => {
+  [".post-card",".post-content img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+});
+</script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"></script><script>document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false},
+      {left: "\\(", right: "\\)", display: false},
+      {left: "\\[", right: "\\]", display: true}
+    ]
+  });
+});</script><link rel="shortcut icon" type="image/svg+xml" href="/Giyn.ico"><link rel="mask-icon" href="/Giyn.ico" color="#6200ee"><link rel="alternate icon" href="/yun.ico"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="preload" href="/js/utils.js" as="script"><link rel="preload" href="/js/hexo-theme-yun.js" as="script"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="/css/hexo-theme-yun.css"><link rel="alternate" href="/atom.xml" title="Giyn's Blog" type="application/atom+xml"><script id="yun-config">
+    const Yun = window.Yun || {};
+    window.CONFIG = {"root":"/","title":"许继元的博客","version":"1.0.0","anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"/data/sentences.json"},"local_search":{"path":"/search.xml"},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]}};
+  </script><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><meta name="description" content="该项目大致分为以下步骤： 使用 requests 库 获取页面 使用 lxml 库 和 XPath 解析页面 爬取电影海报图片 使用 pandas 库 将电影的相关信息存储为 csv 文件 添加循环，保存所有图片以及相关信息   首先构建一个框架来获取豆瓣电影的 HTML 页面：import requests  def get_html(url):     &quot;&quot;&quot;          获取HTML页">
+<meta property="og:type" content="article">
+<meta property="og:title" content="爬取豆瓣电影 Top250 的海报图片以及相关信息">
+<meta property="og:url" content="http://giyn.work/posts/e3c1aa14/index.html">
+<meta property="og:site_name" content="Giyn&#39;s Blog">
+<meta property="og:description" content="该项目大致分为以下步骤： 使用 requests 库 获取页面 使用 lxml 库 和 XPath 解析页面 爬取电影海报图片 使用 pandas 库 将电影的相关信息存储为 csv 文件 添加循环，保存所有图片以及相关信息   首先构建一个框架来获取豆瓣电影的 HTML 页面：import requests  def get_html(url):     &quot;&quot;&quot;          获取HTML页">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/2020030707424829.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307074723316.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307075235608.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/2020030707544363.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307075741458.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307080040827.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307080141408.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307080249731.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307092332145.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307084623522.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307074442891.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307100727648.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307100733449.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/2020030711210317.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307112153636.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307112353151.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307112734493.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200307112801360.png">
+<meta property="article:published_time" content="2020-09-22T03:01:19.000Z">
+<meta property="article:modified_time" content="2021-01-29T03:34:06.220Z">
+<meta property="article:author" content="Giyn">
+<meta property="article:tag" content="requests">
+<meta property="article:tag" content="WebScraper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/2020030707424829.png"><script src="/js/ui/mode.js"></script><link id="light-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism.css" media="(prefers-color-scheme: light)"><link id="dark-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism-tomorrow.css" media="(prefers-color-scheme: dark)"></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script defer src="/js/ui/fireworks.js"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="Table of Contents"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="Overview"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info mickey-mouse"><a class="site-author-avatar" href="/about/" title="Giyn"><img width="96" loading="lazy" src="/images/avatar.png" alt="Giyn"></a><div class="site-author-name"><a href="/about/">Giyn</a></div><a class="site-name" href="/about/site.html">Giyn's Blog</a><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="Home"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="Archives"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">60</span></a></div><div class="site-state-item"><a href="/categories/" title="Categories"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">21</span></a></div><div class="site-state-item"><a href="/tags/" title="Tags"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">41</span></a></div><a class="site-state-item hty-icon-button" href="/about/"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-open-arm-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="/atom.xml" title="RSS" target="_blank" style="color:orange"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-rss-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/Giyn" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="mailto:giyn.jy@gmail.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="http://wpa.qq.com/msgrd?v=3&amp;uin=490601115&amp;site=qq&amp;menu=yes" title="QQ" target="_blank" style="color:#12B7F5"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-qq-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://space.bilibili.com/443380473" title="bilibili" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://twitter.com/jiyuan_xu" title="Twitter" target="_blank" style="color:#1da1f2"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-twitter-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%A5%E9%A1%B9%E7%9B%AE%E5%A4%A7%E8%87%B4%E5%88%86%E4%B8%BA%E4%BB%A5%E4%B8%8B%E6%AD%A5%E9%AA%A4%EF%BC%9A"><span class="toc-number">1.</span> <span class="toc-text">该项目大致分为以下步骤：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A6%96%E5%85%88%E6%9E%84%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%A1%86%E6%9E%B6%E6%9D%A5%E8%8E%B7%E5%8F%96%E8%B1%86%E7%93%A3%E7%94%B5%E5%BD%B1%E7%9A%84-HTML-%E9%A1%B5%E9%9D%A2%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">首先构建一个框架来获取豆瓣电影的 HTML 页面：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8E%A5%E4%B8%8B%E6%9D%A5%E5%88%86%E6%9E%90%E4%B8%80%E4%B8%8B%E8%B1%86%E7%93%A3%E7%94%B5%E5%BD%B1%E7%9A%84%E7%BD%91%E9%A1%B5%EF%BC%9A"><span class="toc-number">1.2.</span> <span class="toc-text">接下来分析一下豆瓣电影的网页：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E8%A7%A3%E6%9E%90%E9%A1%B5%E9%9D%A2%E7%9A%84%E5%87%BD%E6%95%B0%EF%BC%9A"><span class="toc-number">1.3.</span> <span class="toc-text">编写解析页面的函数：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E4%BF%9D%E5%AD%98%E7%94%B5%E5%BD%B1%E6%B5%B7%E6%8A%A5%E5%9B%BE%E7%89%87%E7%9A%84%E5%87%BD%E6%95%B0%EF%BC%9A"><span class="toc-number">1.4.</span> <span class="toc-text">编写保存电影海报图片的函数：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E6%B7%BB%E5%8A%A0%E5%BE%AA%E7%8E%AF%EF%BC%8C%E7%88%AC%E5%8F%96%E6%89%80%E6%9C%89%E7%94%B5%E5%BD%B1%E7%9A%84%E6%B5%B7%E6%8A%A5%E5%9B%BE%E7%89%87%E4%BB%A5%E5%8F%8A%E7%9B%B8%E5%85%B3%E4%BF%A1%E6%81%AF%EF%BC%9A"><span class="toc-number">1.5.</span> <span class="toc-text">最后添加循环，爬取所有电影的海报图片以及相关信息：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="toc-number">2.</span> <span class="toc-text">运行代码：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="toc-number">2.1.</span> <span class="toc-text">完整源代码</span></a></li></ol></li></ol></div></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="post-block" itemscope itemtype="https://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://giyn.work/posts/e3c1aa14/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="Giyn"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="Giyn's Blog"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">爬取豆瓣电影 Top250 的海报图片以及相关信息<a class="post-edit-link" href="https://github.com/Giyn/giyn.github.io/tree/hexo/source/_posts/爬取豆瓣电影 Top250 的海报图片以及相关信息.md" target="_blank" title="Edit this post" rel="noopener"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-edit-line"></use></svg></a></h1><div class="post-meta"><div class="post-time" style="display:block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <span class="post-meta-icon-text">Posted on</span> <time title="Created: 2020-09-22 11:01:19" itemprop="dateCreated datePublished" datetime="2020-09-22T11:01:19+08:00">2020-09-22</time><span class="post-meta-divider">-</span><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-2-line"></use></svg></span> <span class="post-meta-icon-text">Edited on</span> <time title="Modified: 2021-01-29 11:34:06" itemprop="dateModified" datetime="2021-01-29T11:34:06+08:00">2021-01-29</time></div><span class="post-count"><span class="post-symbolcount"><span class="post-meta-item-icon" title="Words count in article"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-file-word-line"></use></svg></span> <span title="Words count in article">981</span><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Reading time"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-timer-line"></use></svg></span> <span title="Reading time">4m</span></span></span><div class="post-classify"><span class="post-category"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span> <span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category" href="/categories/WebScraper/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">WebScraper</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag" href="/tags/requests/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">requests</span></a><a class="tag" href="/tags/WebScraper/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">WebScraper</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body" style="--smc-primary:#6200ee;"><h3 id="该项目大致分为以下步骤："><a href="#该项目大致分为以下步骤：" class="headerlink" title="该项目大致分为以下步骤："></a>该项目大致分为以下步骤：</h3><ul>
+<li>使用 requests 库 获取页面</li>
+<li>使用 lxml 库 和 XPath 解析页面</li>
+<li>爬取电影海报图片</li>
+<li>使用 pandas 库 将电影的相关信息存储为 csv 文件</li>
+<li>添加循环，保存所有图片以及相关信息</li>
+</ul>
+<hr>
+<h4 id="首先构建一个框架来获取豆瓣电影的-HTML-页面："><a href="#首先构建一个框架来获取豆瓣电影的-HTML-页面：" class="headerlink" title="首先构建一个框架来获取豆瓣电影的 HTML 页面："></a>首先构建一个框架来获取豆瓣电影的 HTML 页面：</h4><pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> requests
+
+<span class="token keyword">def</span> <span class="token function">get_html</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    
+    获取HTML页面
+    Parameters
+    ----------
+    url : string
+        URL链接
+    Returns
+    -------
+    HTML
+        HTML页面
+    """</span>
+    headers <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token string">'User-Agent'</span><span class="token punctuation">:</span><span class="token string">"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"</span><span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        html <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span>url<span class="token punctuation">,</span> headers<span class="token operator">=</span>headers<span class="token punctuation">)</span>
+        html<span class="token punctuation">.</span>encoding <span class="token operator">=</span> html<span class="token punctuation">.</span>apparent_encoding
+        <span class="token keyword">if</span> html<span class="token punctuation">.</span>status_code <span class="token operator">==</span> <span class="token number">200</span><span class="token punctuation">:</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"获取HTML页面成功！"</span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"获取HTML页面失败，原因是：%s"</span> <span class="token operator">%</span> e<span class="token punctuation">)</span>
+            
+    <span class="token keyword">return</span> html<span class="token punctuation">.</span>text
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+
+	url <span class="token operator">=</span> <span class="token string">"https://movie.douban.com/top250"</span>
+	
+	html <span class="token operator">=</span> get_html<span class="token punctuation">(</span>url<span class="token punctuation">)</span></code></pre>
+
+<hr>
+<h4 id="接下来分析一下豆瓣电影的网页："><a href="#接下来分析一下豆瓣电影的网页：" class="headerlink" title="接下来分析一下豆瓣电影的网页："></a>接下来分析一下豆瓣电影的网页：</h4><p>使用开发者工具 (F12)，经过分析，可以发现每一页的电影信息都是这些li标签：</p>
+<img src="https://img-blog.csdnimg.cn/2020030707424829.png" width="70%" loading="lazy">
+
+<p>我们用 XPath Helper 获取这些li标签：</p>
+<img src="https://img-blog.csdnimg.cn/20200307074723316.png" width="70%" loading="lazy">
+
+<p><strong>在刚才获取的 li 标签下继续分析电影相关信息：</strong></p>
+<p>首先是电影名字：</p>
+<img src="https://img-blog.csdnimg.cn/20200307075235608.png" width="50%" loading="lazy">
+
+
+
+<p>接下来是导演主演信息：</p>
+<img src="https://img-blog.csdnimg.cn/2020030707544363.png" width="60%" loading="lazy">
+
+
+
+<p>然后是年份、国家和电影类型：</p>
+<img src="https://img-blog.csdnimg.cn/20200307075741458.png" width="60%" loading="lazy">
+
+
+<p>接下来是电影评分：</p>
+<img src="https://img-blog.csdnimg.cn/20200307080040827.png" width="50%" loading="lazy">
+
+
+
+<p>然后是评价人数：</p>
+<img src="https://img-blog.csdnimg.cn/20200307080141408.png" width="50%" loading="lazy">
+
+
+
+<p>接下来是简介：</p>
+<img src="https://img-blog.csdnimg.cn/20200307080249731.png" width="50%" loading="lazy">
+
+<p>（这里发现 Top 247 的那部电影没有简介，所以后面需要处理一下）</p>
+<p>最后是电影海报图片：</p>
+<img src="https://img-blog.csdnimg.cn/20200307092332145.png" width="50%" loading="lazy">
+
+
+<hr>
+<h4 id="编写解析页面的函数："><a href="#编写解析页面的函数：" class="headerlink" title="编写解析页面的函数："></a>编写解析页面的函数：</h4><pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> lxml <span class="token keyword">import</span> etree  <span class="token comment"># 解析HTML页面</span>
+
+<span class="token keyword">def</span> <span class="token function">parse_html</span><span class="token punctuation">(</span>html<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    
+    解析HTML页面
+    Parameters
+    ----------
+    html : HTML
+        爬取的HTML页面
+        
+    Returns
+    -------
+    movies : list
+        电影信息
+    imgurls : list
+        电影海报图片
+    """</span>
+    movies <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>  <span class="token comment"># 存储电影的相关信息</span>
+    imgurls <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>  <span class="token comment"># 存储电影海报图片</span>
+    
+    html <span class="token operator">=</span> etree<span class="token punctuation">.</span>HTML<span class="token punctuation">(</span>html<span class="token punctuation">)</span>
+    lis <span class="token operator">=</span> html<span class="token punctuation">.</span>xpath<span class="token punctuation">(</span><span class="token string">"//ol[@class='grid_view']/li"</span><span class="token punctuation">)</span>  <span class="token comment"># XPath返回列表对象</span>
+
+    <span class="token comment"># 提取每一部电影的相关信息</span>
+    <span class="token keyword">for</span> li <span class="token keyword">in</span> lis<span class="token punctuation">:</span>
+        <span class="token comment"># 下面的XPath路径前面都要加上. 表示从li这个节点开始</span>
+        name <span class="token operator">=</span> li<span class="token punctuation">.</span>xpath<span class="token punctuation">(</span><span class="token string">".//a/span[@class='title'][1]/text()"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>  <span class="token comment"># 获取到的列表第0个元素才是电影名字</span>
+        director_actor <span class="token operator">=</span> li<span class="token punctuation">.</span>xpath<span class="token punctuation">(</span><span class="token string">".//div[@class='bd']/p/text()[1]"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>replace<span class="token punctuation">(</span><span class="token string">' '</span><span class="token punctuation">,</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span>replace<span class="token punctuation">(</span><span class="token string">'\n'</span><span class="token punctuation">,</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span>replace<span class="token punctuation">(</span><span class="token string">'/'</span><span class="token punctuation">,</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span>replace<span class="token punctuation">(</span><span class="token string">'\xa0'</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">)</span>  <span class="token comment"># 去除字符串中的多余字符</span>
+        info <span class="token operator">=</span> li<span class="token punctuation">.</span>xpath<span class="token punctuation">(</span><span class="token string">".//div[@class='bd']/p/text()[2]"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>replace<span class="token punctuation">(</span><span class="token string">' '</span><span class="token punctuation">,</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span>replace<span class="token punctuation">(</span><span class="token string">'\n'</span><span class="token punctuation">,</span><span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">.</span>replace<span class="token punctuation">(</span><span class="token string">'\xa0'</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">)</span>  <span class="token comment"># 去除字符串中的多余字符</span>
+        rating_score <span class="token operator">=</span> li<span class="token punctuation">.</span>xpath<span class="token punctuation">(</span><span class="token string">".//span[@class='rating_num']/text()"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+        rating_num <span class="token operator">=</span> li<span class="token punctuation">.</span>xpath<span class="token punctuation">(</span><span class="token string">".//div[@class='star']/span[4]/text()"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+        introduce <span class="token operator">=</span> li<span class="token punctuation">.</span>xpath<span class="token punctuation">(</span><span class="token string">".//p[@class='quote']/span/text()"</span><span class="token punctuation">)</span>
+            
+        <span class="token comment"># 把提取的相关信息存入movie字典，顺便处理Top 247那部电影没有introduce的情况</span>
+        <span class="token keyword">if</span> introduce<span class="token punctuation">:</span>
+            movie <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token string">'name'</span><span class="token punctuation">:</span> name<span class="token punctuation">,</span> <span class="token string">'director_actor'</span><span class="token punctuation">:</span> director_actor<span class="token punctuation">,</span> <span class="token string">'info'</span><span class="token punctuation">:</span> info<span class="token punctuation">,</span> <span class="token string">'rating_score'</span><span class="token punctuation">:</span> rating_score<span class="token punctuation">,</span>
+                     <span class="token string">'rating_num'</span><span class="token punctuation">:</span> rating_num<span class="token punctuation">,</span> <span class="token string">'introduce'</span><span class="token punctuation">:</span> introduce<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">&#125;</span>
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            movie <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token string">'name'</span><span class="token punctuation">:</span> name<span class="token punctuation">,</span> <span class="token string">'director_actor'</span><span class="token punctuation">:</span> director_actor<span class="token punctuation">,</span> <span class="token string">'info'</span><span class="token punctuation">:</span> info<span class="token punctuation">,</span> <span class="token string">'rating_score'</span><span class="token punctuation">:</span> rating_score<span class="token punctuation">,</span>
+                     <span class="token string">'rating_num'</span><span class="token punctuation">:</span> rating_num<span class="token punctuation">,</span> <span class="token string">'introduce'</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">&#125;</span>
+                
+        movies<span class="token punctuation">.</span>append<span class="token punctuation">(</span>movie<span class="token punctuation">)</span>
+        
+        imgurl <span class="token operator">=</span> li<span class="token punctuation">.</span>xpath<span class="token punctuation">(</span><span class="token string">".//img/@src"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>  <span class="token comment"># 提取图片URL	</span>
+        imgurls<span class="token punctuation">.</span>append<span class="token punctuation">(</span>imgurl<span class="token punctuation">)</span>
+            
+    <span class="token keyword">return</span> movies<span class="token punctuation">,</span> imgurls
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+
+    url <span class="token operator">=</span> <span class="token string">'https://movie.douban.com/top250'</span>
+
+    html <span class="token operator">=</span> get_html<span class="token punctuation">(</span>url<span class="token punctuation">)</span>
+    movies <span class="token operator">=</span> parse_html<span class="token punctuation">(</span>html<span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+    imgurls <span class="token operator">=</span> parse_html<span class="token punctuation">(</span>html<span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span></code></pre>
+<blockquote>
+<p>测试时发现 director_actor 和 info 有 \xa0不间断空白符：<br><img src="https://img-blog.csdnimg.cn/20200307084623522.png" alt="在这里插入图片描述" loading="lazy"><br>用.replace(‘\xa0’, ‘’)语句去除。</p>
+</blockquote>
+<hr>
+<h4 id="编写保存电影海报图片的函数："><a href="#编写保存电影海报图片的函数：" class="headerlink" title="编写保存电影海报图片的函数："></a>编写保存电影海报图片的函数：</h4><pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> os
+
+<span class="token keyword">def</span> <span class="token function">download_img</span><span class="token punctuation">(</span>url<span class="token punctuation">,</span> movie<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    
+    保存海报图片
+    Parameters
+    ----------
+    url : string
+        图片文件链接
+    movie : dict
+        电影信息
+    Returns
+    -------
+    None.
+    """</span>
+    <span class="token keyword">if</span> <span class="token string">'movieposter'</span> <span class="token keyword">in</span> os<span class="token punctuation">.</span>listdir<span class="token punctuation">(</span><span class="token string">r'S:\DouBan'</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">pass</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        os<span class="token punctuation">.</span>mkdir<span class="token punctuation">(</span><span class="token string">'movieposter'</span><span class="token punctuation">)</span>
+            
+    os<span class="token punctuation">.</span>chdir<span class="token punctuation">(</span><span class="token string">r'S:\DouBan\movieposter'</span><span class="token punctuation">)</span>
+    img <span class="token operator">=</span> requests<span class="token punctuation">.</span>get<span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">.</span>content  <span class="token comment"># 返回的是bytes型也就是二进制的数据</span>
+    
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>movie<span class="token punctuation">[</span><span class="token string">'name'</span><span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token string">'.jpg'</span><span class="token punctuation">,</span> <span class="token string">'wb'</span><span class="token punctuation">)</span> <span class="token keyword">as</span> f<span class="token punctuation">:</span>
+        f<span class="token punctuation">.</span>write<span class="token punctuation">(</span>img<span class="token punctuation">)</span></code></pre>
+<h4 id="最后添加循环，爬取所有电影的海报图片以及相关信息："><a href="#最后添加循环，爬取所有电影的海报图片以及相关信息：" class="headerlink" title="最后添加循环，爬取所有电影的海报图片以及相关信息："></a>最后添加循环，爬取所有电影的海报图片以及相关信息：</h4><blockquote>
+<p>每一页有 25 部电影，一共十页：<br><img src="https://img-blog.csdnimg.cn/20200307074442891.png" width="50%" loading="lazy"><br>每一页的 URL 通过以下方式决定：<br><img src="https://img-blog.csdnimg.cn/20200307100727648.png" alt="在这里插入图片描述" loading="lazy"><br><img src="https://img-blog.csdnimg.cn/20200307100733449.png" alt="在这里插入图片描述" loading="lazy"></p>
+</blockquote>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    
+    MOVIES <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    IMGURLS <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+            
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        url <span class="token operator">=</span> <span class="token string">"https://movie.douban.com/top250?start="</span> <span class="token operator">+</span> <span class="token builtin">str</span><span class="token punctuation">(</span>i<span class="token operator">*</span><span class="token number">25</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"&amp;filter="</span>
+        html <span class="token operator">=</span> get_html<span class="token punctuation">(</span>url<span class="token punctuation">)</span>
+        movies <span class="token operator">=</span> parse_html<span class="token punctuation">(</span>html<span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+        imgurls <span class="token operator">=</span> parse_html<span class="token punctuation">(</span>html<span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+
+        MOVIES<span class="token punctuation">.</span>extend<span class="token punctuation">(</span>movies<span class="token punctuation">)</span>
+        IMGURLS<span class="token punctuation">.</span>extend<span class="token punctuation">(</span>imgurls<span class="token punctuation">)</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">250</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        download_img<span class="token punctuation">(</span>IMGURLS<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> MOVIES<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"正在下载第"</span> <span class="token operator">+</span> <span class="token builtin">str</span><span class="token punctuation">(</span>i<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"张图片……"</span><span class="token punctuation">)</span>
+
+    os<span class="token punctuation">.</span>chdir<span class="token punctuation">(</span><span class="token string">r'S:\DouBan'</span><span class="token punctuation">)</span>  <span class="token comment"># 记得把路径换回来</span>
+
+    moviedata <span class="token operator">=</span> pd<span class="token punctuation">.</span>DataFrame<span class="token punctuation">(</span>MOVIES<span class="token punctuation">)</span>  <span class="token comment"># 把电影相关信息转换为DataFrame数据格式</span>
+    moviedata<span class="token punctuation">.</span>to_csv<span class="token punctuation">(</span><span class="token string">'movie.csv'</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"电影相关信息存储成功！"</span><span class="token punctuation">)</span></code></pre>
+
+<hr>
+<h3 id="运行代码："><a href="#运行代码：" class="headerlink" title="运行代码："></a>运行代码：</h3><img src="https://img-blog.csdnimg.cn/2020030711210317.png" width="20%" loading="lazy">
+
+<img src="https://img-blog.csdnimg.cn/20200307112153636.png" width="20%" loading="lazy">
+
+
+<img src="https://img-blog.csdnimg.cn/20200307112353151.png" width="50%" loading="lazy">
+
+
+<img src="https://img-blog.csdnimg.cn/20200307112734493.png" width="80%" loading="lazy">
+
+
+<img src="https://img-blog.csdnimg.cn/20200307112801360.png" width="80%" loading="lazy">
+
+<p><strong>至此，该项目就完成了。</strong></p>
+<hr>
+<h4 id="完整源代码"><a href="#完整源代码" class="headerlink" title="完整源代码"></a><a target="_blank" rel="noopener" href="https://github.com/Giyn/PythonSpider/blob/master/DouBanMoviesSpiders/crawl%20dbmovie%20posters%20&%20INFO/crawl%20dbmovie%20posters%20&%20INFO.py">完整源代码</a></h4></div><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="Donate" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="qr" style="display:none;"><div style="display:inline-block"><a href="/images/Ali-Pay.jpg"><img loading="lazy" src="/images/Ali-Pay.jpg" alt="Ali-Pay" title="Ali-Pay"></a><div><span style="color:#00A3EE"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-alipay-line"></use></svg></span></div></div><div style="display:inline-block"><a href="/images/WeChatPay.jpg"><img loading="lazy" src="/images/WeChatPay.jpg" alt="WeChat Pay" title="WeChat Pay"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>Post author: </strong>Giyn</li><li class="post-copyright-link"><strong>Post link: </strong><a href="http://giyn.work/posts/e3c1aa14/" title="爬取豆瓣电影 Top250 的海报图片以及相关信息">http://giyn.work/posts/e3c1aa14/</a></li><li class="post-copyright-license"><strong>Copyright Notice: </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> unless stating additionally.</li></ul><script>document.addEventListener('copy', function (event) {
+  const clipboardData = event.clipboardData || window.clipboardData;
+  if (!clipboardData) { return; }
+  const text = window.getSelection().toString();
+  if (text) {
+    event.preventDefault();
+    clipboardData.setData('text/plain', text + '\n\nPost author: Giyn\nPost link: http://giyn.work/posts/e3c1aa14/\nCopyright Notice: All articles in this blog are licensed under CC BY-NC-SA 4.0 unless stating additionally.');
+  }
+});</script></section></article><div class="post-nav"><div class="post-nav-item"><a class="post-nav-prev" href="/posts/534e73ee/" rel="prev" title="爬取 b 站视频的名称、地址、简介、观看次数、弹幕数量及发布时间"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-left-s-line"></use></svg><span class="post-nav-text">爬取 b 站视频的名称、地址、简介、观看次数、弹幕数量及发布时间</span></a></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/1cdfbc28/" rel="next" title="爬取豆瓣 Top100 电影并存储为 csv 文件（附 csv 文件乱码解决方法）"><span class="post-nav-text">爬取豆瓣 Top100 电影并存储为 csv 文件（附 csv 文件乱码解决方法）</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div></main><footer class="sidebar-translate" id="footer"><div class="copyright"><span>&copy; 2020 – 2021 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> Giyn</span></div><div class="powered"><span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> v5.1.1</span><span class="footer-separator">|</span><span>Theme - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.0.0</span></div><div class="live_time"><span>本博客已运行</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  window.setTimeout(blog_live_time, 1000);
+  const start = new Date('2020-09-03T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = " " + passDay + " 天 " + passHour + " 小时 " + passMinute + " 分 " + passSecond + " 秒";
+}
+blog_live_time();
+</script></div></footer><a class="hty-icon-button" id="goUp" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><a class="popup-trigger hty-icon-button icon-search" id="search" href="javascript:;" title="Search"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-search-line"></use></svg></span></a><script>window.addEventListener("DOMContentLoaded", () => {
+  // Handle and trigger popup window
+  document.querySelector(".popup-trigger").addEventListener("click", () => {
+    document.querySelector(".popup").classList.add("show");
+    setTimeout(() => {
+      document.querySelector(".search-input").focus();
+    }, 100);
+  });
+
+  // Monitor main search box
+  const onPopupClose = () => {
+    document.querySelector(".popup").classList.remove("show");
+  };
+
+  document.querySelector(".popup-btn-close").addEventListener("click", () => {
+    onPopupClose();
+  });
+
+  window.addEventListener("keyup", event => {
+    if (event.key === "Escape") {
+      onPopupClose();
+    }
+  });
+});
+</script><script src="/js/search/local-search.js" defer></script><div class="popup search-popup"><div class="search-header"><span class="popup-btn-close close-icon hty-icon-button"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-close-line"></use></svg></span></div><div class="search-input-container"><input class="search-input" id="local-search-input" type="text" placeholder="Searching..." value=""></div><div id="local-search-result"></div></div><script>const date = new Date();
+const today = (date.getMonth() + 1) + "-" + date.getDate()
+const mourn_days = ["4-4"]
+if (mourn_days.includes(today)) {
+  document.documentElement.style.filter = "grayscale(1)";
+}</script></div><script defer src="/js/utils.js"></script><script defer src="/js/hexo-theme-yun.js"></script></body></html>

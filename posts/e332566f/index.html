@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="Giyn"><meta name="copyright" content="Giyn"><meta name="generator" content="Hexo 5.1.1"><meta name="theme" content="hexo-theme-yun"><title>Web 网页基础 | Giyn's Blog</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="none" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.1.19/dist/yun/yun-markdown.min.css"><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>document.addEventListener("DOMContentLoaded", () => {
+  [".post-card",".post-content img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+});
+</script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"></script><script>document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false},
+      {left: "\\(", right: "\\)", display: false},
+      {left: "\\[", right: "\\]", display: true}
+    ]
+  });
+});</script><link rel="shortcut icon" type="image/svg+xml" href="/Giyn.ico"><link rel="mask-icon" href="/Giyn.ico" color="#6200ee"><link rel="alternate icon" href="/yun.ico"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="preload" href="/js/utils.js" as="script"><link rel="preload" href="/js/hexo-theme-yun.js" as="script"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="/css/hexo-theme-yun.css"><link rel="alternate" href="/atom.xml" title="Giyn's Blog" type="application/atom+xml"><script id="yun-config">
+    const Yun = window.Yun || {};
+    window.CONFIG = {"root":"/","title":"许继元的博客","version":"1.0.0","anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"/data/sentences.json"},"local_search":{"path":"/search.xml"},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]}};
+  </script><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><meta name="description" content="网页的组成网页可以分为三大部分：HTML、CSS 和 JavaScript。  HTML 相当于骨架。 JavaScript 相当于肌肉。 CSS 相当于皮肤。  HTMLHTML 是用来描述网页的一种语言，全称为 Hyper Text Markup Language 超文本标记语言不同类型的元素通过不同类型的标签来表示：  图片用 img 标签表示。 视频用 video 标签表示。 段落用 p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Web 网页基础">
+<meta property="og:url" content="http://giyn.work/posts/e332566f/index.html">
+<meta property="og:site_name" content="Giyn&#39;s Blog">
+<meta property="og:description" content="网页的组成网页可以分为三大部分：HTML、CSS 和 JavaScript。  HTML 相当于骨架。 JavaScript 相当于肌肉。 CSS 相当于皮肤。  HTMLHTML 是用来描述网页的一种语言，全称为 Hyper Text Markup Language 超文本标记语言不同类型的元素通过不同类型的标签来表示：  图片用 img 标签表示。 视频用 video 标签表示。 段落用 p">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200602024954702.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200602025703691.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200602025939445.png">
+<meta property="article:published_time" content="2020-09-25T14:28:42.000Z">
+<meta property="article:modified_time" content="2020-09-26T03:28:31.726Z">
+<meta property="article:author" content="Giyn">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20200602024954702.png"><script src="/js/ui/mode.js"></script><link id="light-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism.css" media="(prefers-color-scheme: light)"><link id="dark-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism-tomorrow.css" media="(prefers-color-scheme: dark)"></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script defer src="/js/ui/fireworks.js"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="Table of Contents"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="Overview"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info mickey-mouse"><a class="site-author-avatar" href="/about/" title="Giyn"><img width="96" loading="lazy" src="/images/avatar.png" alt="Giyn"></a><div class="site-author-name"><a href="/about/">Giyn</a></div><a class="site-name" href="/about/site.html">Giyn's Blog</a><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="Home"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="Archives"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">60</span></a></div><div class="site-state-item"><a href="/categories/" title="Categories"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">21</span></a></div><div class="site-state-item"><a href="/tags/" title="Tags"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">41</span></a></div><a class="site-state-item hty-icon-button" href="/about/"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-open-arm-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="/atom.xml" title="RSS" target="_blank" style="color:orange"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-rss-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/Giyn" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="mailto:giyn.jy@gmail.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="http://wpa.qq.com/msgrd?v=3&amp;uin=490601115&amp;site=qq&amp;menu=yes" title="QQ" target="_blank" style="color:#12B7F5"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-qq-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://space.bilibili.com/443380473" title="bilibili" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://twitter.com/jiyuan_xu" title="Twitter" target="_blank" style="color:#1da1f2"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-twitter-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E9%A1%B5%E7%9A%84%E7%BB%84%E6%88%90"><span class="toc-number">1.</span> <span class="toc-text">网页的组成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HTML"><span class="toc-number">2.</span> <span class="toc-text">HTML</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CSS"><span class="toc-number">3.</span> <span class="toc-text">CSS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JavaScript"><span class="toc-number">4.</span> <span class="toc-text">JavaScript</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E9%A1%B5%E7%9A%84%E7%BB%93%E6%9E%84"><span class="toc-number">5.</span> <span class="toc-text">网页的结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8A%82%E7%82%B9%E6%A0%91%E5%8F%8A%E8%8A%82%E7%82%B9%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">6.</span> <span class="toc-text">节点树及节点间的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8A%82%E7%82%B9%E6%A0%91%E4%B8%AD%E7%9A%84%E8%8A%82%E7%82%B9%E5%BD%BC%E6%AD%A4%E6%8B%A5%E6%9C%89%E5%B1%82%E7%BA%A7%E5%85%B3%E7%B3%BB"><span class="toc-number">7.</span> <span class="toc-text">节点树中的节点彼此拥有层级关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E5%99%A8"><span class="toc-number">8.</span> <span class="toc-text">选择器</span></a></li></ol></div></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="post-block" itemscope itemtype="https://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://giyn.work/posts/e332566f/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="Giyn"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="Giyn's Blog"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">Web 网页基础<a class="post-edit-link" href="https://github.com/Giyn/giyn.github.io/tree/hexo/source/_posts/Web 网页基础.md" target="_blank" title="Edit this post" rel="noopener"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-edit-line"></use></svg></a></h1><div class="post-meta"><div class="post-time" style="display:block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <span class="post-meta-icon-text">Posted on</span> <time title="Created: 2020-09-25 22:28:42" itemprop="dateCreated datePublished" datetime="2020-09-25T22:28:42+08:00">2020-09-25</time><span class="post-meta-divider">-</span><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-2-line"></use></svg></span> <span class="post-meta-icon-text">Edited on</span> <time title="Modified: 2020-09-26 11:28:31" itemprop="dateModified" datetime="2020-09-26T11:28:31+08:00">2020-09-26</time></div><span class="post-count"><span class="post-symbolcount"><span class="post-meta-item-icon" title="Words count in article"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-file-word-line"></use></svg></span> <span title="Words count in article">1.3k</span><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Reading time"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-timer-line"></use></svg></span> <span title="Reading time">4m</span></span></span><div class="post-classify"><span class="post-category"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span> <span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category" href="/categories/Web/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">Web</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag" href="/tags/Web/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">Web</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body" style="--smc-primary:#6200ee;"><h3 id="网页的组成"><a href="#网页的组成" class="headerlink" title="网页的组成"></a>网页的组成</h3><p>网页可以分为三大部分：HTML、CSS 和 JavaScript。</p>
+<ul>
+<li>HTML 相当于骨架。</li>
+<li>JavaScript 相当于肌肉。</li>
+<li>CSS 相当于皮肤。</li>
+</ul>
+<h3 id="HTML"><a href="#HTML" class="headerlink" title="HTML"></a>HTML</h3><p>HTML 是用来描述网页的一种语言，全称为 Hyper Text Markup Language 超文本标记语言<br>不同类型的元素通过不同类型的标签来表示：</p>
+<ul>
+<li>图片用 <code>img</code> 标签表示。</li>
+<li>视频用 <code>video</code> 标签表示。</li>
+<li>段落用 <code>p</code> 标签表示。</li>
+<li>它们之间的布局又常通过布局标签 <code>div</code> 嵌套组合而成。</li>
+</ul>
+<h3 id="CSS"><a href="#CSS" class="headerlink" title="CSS"></a>CSS</h3><p>CSS 全称叫作 Cascading Style Sheets，即层叠样式表</p>
+<ul>
+<li>“层叠” 指当在 HTML 中引用了数个样式文件，并且样式发生冲突时，浏览器能依据层叠顺序处理。</li>
+<li>“样式”指网页中文字大小、颜色、元素间距、排列等格式。</li>
+</ul>
+<blockquote>
+<p>CSS 是目前唯一的网页页面排版样式标准。</p>
+</blockquote>
+<ul>
+<li>在网页中，一般会统一定义整个网页的样式规则，并写入 CSS 文件中（其后缀为 css）。</li>
+<li>在 HTML 中，只需要用 link 标签即可引入写好的 CSS 文件。</li>
+</ul>
+<h3 id="JavaScript"><a href="#JavaScript" class="headerlink" title="JavaScript"></a>JavaScript</h3><p>JavaScript 简称 JS，是一种脚本语言。</p>
+<p>在网页里看到的一些交互和动画效果，如下载进度条、提示框、轮播图等，通常就是利用 JavaScript。</p>
+<p>JavaScript 使得用户与信息之间不只是一种浏览与显示的关系，而是实现了一种实时、动态、交互的页面功能。</p>
+<p>JavaScript 通常是以单独的文件形式加载的，后缀为 js，在 HTML 中通过 script 标签即可引入。</p>
+<ul>
+<li>HTML 定义网页的内容和结构。</li>
+<li>CSS 描述网页的布局。</li>
+<li>JavaScript 定义网页的行为。</li>
+</ul>
+<h3 id="网页的结构"><a href="#网页的结构" class="headerlink" title="网页的结构"></a>网页的结构</h3><pre class="language-html" data-language="html"><code class="language-html"><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">html</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">charset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>UTF-8<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span>This is a Demo<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>container<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>wrapper<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Hello World<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Hello, this is a paragraph.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span></code></pre>
+
+<ul>
+<li>head 标签内定义一些页面的配置和引用。</li>
+<li>title 标签则定义网页的标题，会显示在网页的选项卡中，不会显示在正文中。</li>
+<li>body 标签内是在网页正文中显示的内容。</li>
+<li>div 标签定义网页中的区块。</li>
+<li>h2 标签代表一个二级标题。</li>
+</ul>
+<p><strong>代码保存后，在浏览器中打开该文件：</strong></p>
+<img src="https://img-blog.csdnimg.cn/20200602024954702.png" width="50%" loading="lazy">
+
+
+
+<p><strong>一个网页的标准形式：</strong></p>
+<ul>
+<li>html 标签内嵌套 head 和 body 标签。</li>
+<li>head 内定义网页的配置和引用。</li>
+<li>body 内定义网页的正文。</li>
+</ul>
+<h3 id="节点树及节点间的关系"><a href="#节点树及节点间的关系" class="headerlink" title="节点树及节点间的关系"></a>节点树及节点间的关系</h3><p>在 HTML 中，所有标签定义的内容都是节点，它们构成了一个 HTML DOM 树。<br>DOM 是 W3C（万维网联盟）的标准，其英文全称 Document Object Model，即文档对象模型。</p>
+<p><strong>访问 HTML 和 XML 文档的标准：</strong><br>W3C 文档对象模型（DOM）是中立于平台和语言的接口，它允许程序和脚本动态地访问和更新文档的内容、结构和样式。</p>
+<p><strong>W3C DOM 标准被分为 3 个不同的部分:</strong><br>核心 DOM - 针对任何结构化文档的标准模型。<br>XML DOM - 针对 XML 文档的标准模型。<br>HTML DOM - 针对 HTML 文档的标准模型。</p>
+<p>根据 W3C 的 HTML DOM 标准，<strong>HTML 文档中的所有内容都是节点：</strong></p>
+<ul>
+<li>整个文档是一个文档节点</li>
+<li>每个 HTML 元素是元素节点</li>
+<li>HTML 元素内的文本是文本节点</li>
+<li>每个 HTML 属性是属性节点</li>
+<li>注释是注释节点</li>
+</ul>
+<p>HTML DOM 将 HTML 文档视作树结构，这种结构被称为节点树。<br>通过 HTML DOM，树中的所有节点均可通过 JavaScript 访问所有 HTML 节点元素均可被修改也可以被创建或删除。</p>
+<img src="https://img-blog.csdnimg.cn/20200602025703691.png" width="50%" loading="lazy">
+
+
+
+<h3 id="节点树中的节点彼此拥有层级关系"><a href="#节点树中的节点彼此拥有层级关系" class="headerlink" title="节点树中的节点彼此拥有层级关系"></a>节点树中的节点彼此拥有层级关系</h3><p>常用父（parent） 、子（child）和兄弟（sibling）等术语描述这些关系。</p>
+<p>父节点拥有子节点，同级的子节点被称为兄弟节点。</p>
+<p>顶端节点称为根（root）。<br>除根节点外，每个节点都有父节点，同时可拥有任意数量的子节点或兄弟节点。</p>
+<img src="https://img-blog.csdnimg.cn/20200602025939445.png" width="50%" loading="lazy">
+
+
+
+<h3 id="选择器"><a href="#选择器" class="headerlink" title="选择器"></a>选择器</h3><p>在 CSS 中，我们使用 CSS 选择器来定位节点。</p>
+<pre class="language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>container<span class="token punctuation">"</span></span><span class="token punctuation">></span></span></code></pre>
+
+<p>表示为 #container。<br>其中 # 开头代表选择 id，其后紧跟 id 的名称。</p>
+<p>可使用 wrapper 以点 “.”，开头代表选择 class，其后紧跟 class 的名称。</p>
+<p>另外还可使用根据标签名筛选：</p>
+<blockquote>
+<p>例如想选择二级标题，直接用 h2 即可。</p>
+</blockquote>
+<p><strong>最常用的 3 种表示：</strong><br>根据 id、class、标签名筛选</p>
+<p>CSS 选择器还支持嵌套选择，各个选择器之间加上空格分隔开可以代表嵌套关系。</p>
+<blockquote>
+<p>如 #container.wrapper p</p>
+</blockquote>
+<ul>
+<li>代表先选择 id 为 container 的节点。</li>
+<li>然后选中其内部的 class 为 wrapper 的节点。</li>
+<li>然后再进一步选中其内部的 p 节点。</li>
+</ul>
+<p>不加空格，则代表并列关系</p>
+<blockquote>
+<p>如 div#container.wrapper p.text。</p>
+</blockquote>
+<ul>
+<li>代表先选择 id 为 container 的 div 节点。</li>
+<li>然后选中其内部的 class 为 wrapper 的节点。</li>
+<li>再进一步选中其内部的 class 为 text 的 p 节点。</li>
+</ul>
+<p>Reference：<a target="_blank" rel="noopener" href="https://kaiwu.lagou.com/course/courseInfo.htm?courseId=46#/detail/pc?id=1663">https://kaiwu.lagou.com/course/courseInfo.htm?courseId=46#/detail/pc?id=1663</a></p>
+</div><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="Donate" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="qr" style="display:none;"><div style="display:inline-block"><a href="/images/Ali-Pay.jpg"><img loading="lazy" src="/images/Ali-Pay.jpg" alt="Ali-Pay" title="Ali-Pay"></a><div><span style="color:#00A3EE"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-alipay-line"></use></svg></span></div></div><div style="display:inline-block"><a href="/images/WeChatPay.jpg"><img loading="lazy" src="/images/WeChatPay.jpg" alt="WeChat Pay" title="WeChat Pay"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>Post author: </strong>Giyn</li><li class="post-copyright-link"><strong>Post link: </strong><a href="http://giyn.work/posts/e332566f/" title="Web 网页基础">http://giyn.work/posts/e332566f/</a></li><li class="post-copyright-license"><strong>Copyright Notice: </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> unless stating additionally.</li></ul><script>document.addEventListener('copy', function (event) {
+  const clipboardData = event.clipboardData || window.clipboardData;
+  if (!clipboardData) { return; }
+  const text = window.getSelection().toString();
+  if (text) {
+    event.preventDefault();
+    clipboardData.setData('text/plain', text + '\n\nPost author: Giyn\nPost link: http://giyn.work/posts/e332566f/\nCopyright Notice: All articles in this blog are licensed under CC BY-NC-SA 4.0 unless stating additionally.');
+  }
+});</script></section></article><div class="post-nav"><div class="post-nav-item"><a class="post-nav-prev" href="/posts/a5d7ebc3/" rel="prev" title="Session与Cookies"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-left-s-line"></use></svg><span class="post-nav-text">Session与Cookies</span></a></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/380fcb48/" rel="next" title="HTTP 基本原理"><span class="post-nav-text">HTTP 基本原理</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div></main><footer class="sidebar-translate" id="footer"><div class="copyright"><span>&copy; 2020 – 2021 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> Giyn</span></div><div class="powered"><span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> v5.1.1</span><span class="footer-separator">|</span><span>Theme - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.0.0</span></div><div class="live_time"><span>本博客已运行</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  window.setTimeout(blog_live_time, 1000);
+  const start = new Date('2020-09-03T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = " " + passDay + " 天 " + passHour + " 小时 " + passMinute + " 分 " + passSecond + " 秒";
+}
+blog_live_time();
+</script></div></footer><a class="hty-icon-button" id="goUp" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><a class="popup-trigger hty-icon-button icon-search" id="search" href="javascript:;" title="Search"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-search-line"></use></svg></span></a><script>window.addEventListener("DOMContentLoaded", () => {
+  // Handle and trigger popup window
+  document.querySelector(".popup-trigger").addEventListener("click", () => {
+    document.querySelector(".popup").classList.add("show");
+    setTimeout(() => {
+      document.querySelector(".search-input").focus();
+    }, 100);
+  });
+
+  // Monitor main search box
+  const onPopupClose = () => {
+    document.querySelector(".popup").classList.remove("show");
+  };
+
+  document.querySelector(".popup-btn-close").addEventListener("click", () => {
+    onPopupClose();
+  });
+
+  window.addEventListener("keyup", event => {
+    if (event.key === "Escape") {
+      onPopupClose();
+    }
+  });
+});
+</script><script src="/js/search/local-search.js" defer></script><div class="popup search-popup"><div class="search-header"><span class="popup-btn-close close-icon hty-icon-button"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-close-line"></use></svg></span></div><div class="search-input-container"><input class="search-input" id="local-search-input" type="text" placeholder="Searching..." value=""></div><div id="local-search-result"></div></div><script>const date = new Date();
+const today = (date.getMonth() + 1) + "-" + date.getDate()
+const mourn_days = ["4-4"]
+if (mourn_days.includes(today)) {
+  document.documentElement.style.filter = "grayscale(1)";
+}</script></div><script defer src="/js/utils.js"></script><script defer src="/js/hexo-theme-yun.js"></script></body></html>

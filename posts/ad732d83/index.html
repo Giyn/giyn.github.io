@@ -1,0 +1,641 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="Giyn"><meta name="copyright" content="Giyn"><meta name="generator" content="Hexo 5.1.1"><meta name="theme" content="hexo-theme-yun"><title>多进程基本原理及 Python 实现 | Giyn's Blog</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="none" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.1.19/dist/yun/yun-markdown.min.css"><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>document.addEventListener("DOMContentLoaded", () => {
+  [".post-card",".post-content img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+});
+</script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"></script><script>document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false},
+      {left: "\\(", right: "\\)", display: false},
+      {left: "\\[", right: "\\]", display: true}
+    ]
+  });
+});</script><link rel="shortcut icon" type="image/svg+xml" href="/Giyn.ico"><link rel="mask-icon" href="/Giyn.ico" color="#6200ee"><link rel="alternate icon" href="/yun.ico"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="preload" href="/js/utils.js" as="script"><link rel="preload" href="/js/hexo-theme-yun.js" as="script"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="/css/hexo-theme-yun.css"><link rel="alternate" href="/atom.xml" title="Giyn's Blog" type="application/atom+xml"><script id="yun-config">
+    const Yun = window.Yun || {};
+    window.CONFIG = {"root":"/","title":"许继元的博客","version":"1.0.0","anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"/data/sentences.json"},"local_search":{"path":"/search.xml"},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]}};
+  </script><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><meta name="description" content="多进程的含义进程（Process）是具有一定独立功能的程序关于某个数据集合上的一次运行活动，是系统进行资源分配和调度的一个独立单位。 多进程就是启用多个进程同时运行。 Python 多进程的优势由于进程中 GIL 的存在，Python 中的多线程并不能很好地发挥多核优势，一个进程中的多个线程，同一时刻只能有一个线程运行。  在 Python 多线程下，每个线程的执行方式如下：  获取 GIL。 执">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多进程基本原理及 Python 实现">
+<meta property="og:url" content="http://giyn.work/posts/ad732d83/index.html">
+<meta property="og:site_name" content="Giyn&#39;s Blog">
+<meta property="og:description" content="多进程的含义进程（Process）是具有一定独立功能的程序关于某个数据集合上的一次运行活动，是系统进行资源分配和调度的一个独立单位。 多进程就是启用多个进程同时运行。 Python 多进程的优势由于进程中 GIL 的存在，Python 中的多线程并不能很好地发挥多核优势，一个进程中的多个线程，同一时刻只能有一个线程运行。  在 Python 多线程下，每个线程的执行方式如下：  获取 GIL。 执">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200603205921259.png">
+<meta property="article:published_time" content="2020-09-25T14:44:19.000Z">
+<meta property="article:modified_time" content="2020-09-26T03:28:31.853Z">
+<meta property="article:author" content="Giyn">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="MultiProcessing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20200603205921259.png"><script src="/js/ui/mode.js"></script><link id="light-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism.css" media="(prefers-color-scheme: light)"><link id="dark-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism-tomorrow.css" media="(prefers-color-scheme: dark)"></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script defer src="/js/ui/fireworks.js"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="Table of Contents"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="Overview"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info mickey-mouse"><a class="site-author-avatar" href="/about/" title="Giyn"><img width="96" loading="lazy" src="/images/avatar.png" alt="Giyn"></a><div class="site-author-name"><a href="/about/">Giyn</a></div><a class="site-name" href="/about/site.html">Giyn's Blog</a><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="Home"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="Archives"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">60</span></a></div><div class="site-state-item"><a href="/categories/" title="Categories"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">21</span></a></div><div class="site-state-item"><a href="/tags/" title="Tags"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">41</span></a></div><a class="site-state-item hty-icon-button" href="/about/"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-open-arm-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="/atom.xml" title="RSS" target="_blank" style="color:orange"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-rss-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/Giyn" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="mailto:giyn.jy@gmail.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="http://wpa.qq.com/msgrd?v=3&amp;uin=490601115&amp;site=qq&amp;menu=yes" title="QQ" target="_blank" style="color:#12B7F5"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-qq-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://space.bilibili.com/443380473" title="bilibili" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://twitter.com/jiyuan_xu" title="Twitter" target="_blank" style="color:#1da1f2"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-twitter-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-number">1.</span> <span class="toc-text">多进程的含义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Python-%E5%A4%9A%E8%BF%9B%E7%A8%8B%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">2.</span> <span class="toc-text">Python 多进程的优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">多进程的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8-Process-%E7%B1%BB"><span class="toc-number">3.1.</span> <span class="toc-text">直接使用 Process 类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BB%A7%E6%89%BFProcess%E7%B1%BB"><span class="toc-number">3.2.</span> <span class="toc-text">继承Process类</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B"><span class="toc-number">4.</span> <span class="toc-text">守护进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%AD%89%E5%BE%85"><span class="toc-number">5.</span> <span class="toc-text">进程等待</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%88%E6%AD%A2%E8%BF%9B%E7%A8%8B"><span class="toc-number">6.</span> <span class="toc-text">终止进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E4%BA%92%E6%96%A5%E9%94%81"><span class="toc-number">7.</span> <span class="toc-text">进程互斥锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8F"><span class="toc-number">8.</span> <span class="toc-text">信号量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%9F%E5%88%97"><span class="toc-number">9.</span> <span class="toc-text">队列</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E9%81%93"><span class="toc-number">10.</span> <span class="toc-text">管道</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E6%B1%A0"><span class="toc-number">11.</span> <span class="toc-text">进程池</span></a></li></ol></div></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="post-block" itemscope itemtype="https://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://giyn.work/posts/ad732d83/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="Giyn"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="Giyn's Blog"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">多进程基本原理及 Python 实现<a class="post-edit-link" href="https://github.com/Giyn/giyn.github.io/tree/hexo/source/_posts/多进程基本原理及 Python 实现.md" target="_blank" title="Edit this post" rel="noopener"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-edit-line"></use></svg></a></h1><div class="post-meta"><div class="post-time" style="display:block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <span class="post-meta-icon-text">Posted on</span> <time title="Created: 2020-09-25 22:44:19" itemprop="dateCreated datePublished" datetime="2020-09-25T22:44:19+08:00">2020-09-25</time><span class="post-meta-divider">-</span><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-2-line"></use></svg></span> <span class="post-meta-icon-text">Edited on</span> <time title="Modified: 2020-09-26 11:28:31" itemprop="dateModified" datetime="2020-09-26T11:28:31+08:00">2020-09-26</time></div><span class="post-count"><span class="post-symbolcount"><span class="post-meta-item-icon" title="Words count in article"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-file-word-line"></use></svg></span> <span title="Words count in article">5k</span><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Reading time"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-timer-line"></use></svg></span> <span title="Reading time">21m</span></span></span><div class="post-classify"><span class="post-category"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span> <span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category" href="/categories/MultiProcessing/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">MultiProcessing</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag" href="/tags/Python/" style="--text-color:#3776ab"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">Python</span></a><a class="tag" href="/tags/MultiProcessing/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">MultiProcessing</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body" style="--smc-primary:#6200ee;"><h3 id="多进程的含义"><a href="#多进程的含义" class="headerlink" title="多进程的含义"></a>多进程的含义</h3><p><strong>进程（Process）</strong><br>是具有一定独立功能的程序关于某个数据集合上的一次运行活动，是系统进行资源分配和调度的一个独立单位。</p>
+<p>多进程就是启用多个进程同时运行。</p>
+<h3 id="Python-多进程的优势"><a href="#Python-多进程的优势" class="headerlink" title="Python 多进程的优势"></a>Python 多进程的优势</h3><p>由于进程中 GIL 的存在，Python 中的多线程并不能很好地发挥多核优势，<strong>一个进程中的多个线程，同一时刻只能有一个线程运行</strong>。</p>
+<blockquote>
+<p>在 Python 多线程下，每个线程的执行方式如下：</p>
+<ul>
+<li>获取 GIL。</li>
+<li>执行对应线程的代码。</li>
+<li>释放 GIL。</li>
+</ul>
+</blockquote>
+<p>对于多进程来说，<strong>每个进程都有属于自己的 GIL</strong>，所以在多核处理器下，多进程的运行是不会受 GIL 的影响的，<strong>多进程能更好地发挥多核的优势</strong>。</p>
+<p>Python 的多进程整体来看是比多线程更有优势，在条件允许的情况下，能用多进程就尽量用多进程。</p>
+<p>由于进程是系统进行资源分配和调度的一个独立单位，所以各个进程之间的数据是无法共享的。</p>
+<h3 id="多进程的实现"><a href="#多进程的实现" class="headerlink" title="多进程的实现"></a>多进程的实现</h3><img src="https://img-blog.csdnimg.cn/20200603205921259.png" width="50%" loading="lazy">
+
+<ul>
+<li><h4 id="直接使用-Process-类"><a href="#直接使用-Process-类" class="headerlink" title="直接使用 Process 类"></a>直接使用 Process 类</h4></li>
+</ul>
+<p>在 multiprocessing 中，每进程都用一个 Process 类来表示。</p>
+<p>API 调用：Process([group [, target [, name [, args [, kwargs]]]]])</p>
+<ul>
+<li><strong>target</strong> 表示调用对象，可以传入方法的名字。</li>
+<li><strong>args</strong> 表示被调用对象的位置参数元组。<br>比如 target 是函数 func，它有两个参数 m，n，那么 args 就传入 [m, n] 即可。</li>
+<li><strong>kwargs</strong> 表示调用对象的字典。</li>
+<li><strong>name</strong> 是别名，相当于给这个进程取一个名字。</li>
+<li><strong>group</strong> 分组。</li>
+</ul>
+<p><strong>实例：</strong></p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> multiprocessing
+
+
+<span class="token keyword">def</span> <span class="token function">process</span><span class="token punctuation">(</span>index<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Process: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>index<span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        p <span class="token operator">=</span> multiprocessing<span class="token punctuation">.</span>Process<span class="token punctuation">(</span>target<span class="token operator">=</span>process<span class="token punctuation">,</span> args<span class="token operator">=</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Process: 0
+Process: 1
+Process: 2
+Process: 3
+Process: 4</code></pre>
+
+
+
+<p><strong>multiprocessing 还提供了几个比较有用的方法：</strong></p>
+<ul>
+<li>通过 cpu_count 方法来获取当前机器 CPU 的核心数量</li>
+<li>通过 active_children 方法获取当前还在运行的所有进程</li>
+</ul>
+<p><strong>实例：</strong></p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> multiprocessing
+<span class="token keyword">import</span> time
+
+
+<span class="token keyword">def</span> <span class="token function">process</span><span class="token punctuation">(</span>index<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span>index<span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Process: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>index<span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        p <span class="token operator">=</span> multiprocessing<span class="token punctuation">.</span>Process<span class="token punctuation">(</span>target<span class="token operator">=</span>process<span class="token punctuation">,</span> args<span class="token operator">=</span><span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span>
+        p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'CPU number: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>multiprocessing<span class="token punctuation">.</span>cpu_count<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">for</span> p <span class="token keyword">in</span> multiprocessing<span class="token punctuation">.</span>active_children<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Child process name: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>p<span class="token punctuation">.</span>name<span class="token punctuation">&#125;</span></span><span class="token string"> id: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>p<span class="token punctuation">.</span>pid<span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Process Ended'</span><span class="token punctuation">)</span></code></pre>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Process: 0
+CPU number: 8
+Child process name: Process-5 id: 73595
+Child process name: Process-2 id: 73592
+Child process name: Process-3 id: 73593
+Child process name: Process-4 id: 73594
+Process Ended
+Process: 1
+Process: 2
+Process: 3
+Process: 4</code></pre>
+
+
+
+<ul>
+<li><h4 id="继承Process类"><a href="#继承Process类" class="headerlink" title="继承Process类"></a>继承Process类</h4><p>创建进程的方式不止一种，也可以像线程 Thread 一样，通过继承的方式创建一个进程类，进程的基本操作在子类的 run 方法中实现即可。</p>
+</li>
+</ul>
+<p><strong>实例：</strong></p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> multiprocessing <span class="token keyword">import</span> Process
+<span class="token keyword">import</span> time
+
+
+<span class="token keyword">class</span> <span class="token class-name">MyProcess</span><span class="token punctuation">(</span>Process<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> loop<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        Process<span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>self<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>loop <span class="token operator">=</span> loop
+
+    <span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> count <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>loop<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Pid: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>self<span class="token punctuation">.</span>pid<span class="token punctuation">&#125;</span></span><span class="token string"> LoopCount: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>count<span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        p <span class="token operator">=</span> MyProcess<span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+        p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
+<blockquote>
+<p>这里进程的执行逻辑需要在 run 方法中实现，启动进程需要调用 start 方法，调用之后 run 方法便会执行。</p>
+</blockquote>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Pid: 73667 LoopCount: 0
+Pid: 73668 LoopCount: 0
+Pid: 73669 LoopCount: 0
+Pid: 73667 LoopCount: 1
+Pid: 73668 LoopCount: 1
+Pid: 73669 LoopCount: 1
+Pid: 73668 LoopCount: 2
+Pid: 73669 LoopCount: 2
+Pid: 73669 LoopCount: 3</code></pre>
+<blockquote>
+<p>这里的进程 pid 代表进程号，不同机器、不同时刻运行结果可能不同。</p>
+</blockquote>
+<blockquote>
+<p>通过上面的方式，我们也非常方便地实现了一个进程的定义。<br>为了复用方便，我们可以把一些方法写在每个进程类里封装好，在使用时直接初始化一个进程类运行即可。</p>
+</blockquote>
+<h3 id="守护进程"><a href="#守护进程" class="headerlink" title="守护进程"></a>守护进程</h3><p>在多进程中，同样存在守护进程的概念，如果一个进程被设置为守护进程，当父进程结束后，子进程会自动被终止，我们可以通过设置 daemon 属性来控制是否为守护进程。</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> multiprocessing <span class="token keyword">import</span> Process
+<span class="token keyword">import</span> time
+
+
+<span class="token keyword">class</span> <span class="token class-name">MyProcess</span><span class="token punctuation">(</span>Process<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> loop<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        Process<span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>self<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>loop <span class="token operator">=</span> loop
+
+    <span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> count <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>loop<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Pid: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>self<span class="token punctuation">.</span>pid<span class="token punctuation">&#125;</span></span><span class="token string"> LoopCount: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>count<span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        p <span class="token operator">=</span> MyProcess<span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+        p<span class="token punctuation">.</span>daemon <span class="token operator">=</span> <span class="token boolean">True</span>
+        p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Main Process ended'</span><span class="token punctuation">)</span></code></pre>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Main Process ended</code></pre>
+<p>结果很简单，因为主进程没有做任何事情，直接输出一句话结束，所以在这时也直接终止了子进程的运行。</p>
+<p>这样可以有效防止无控制地生成子进程。这样的写法可以让我们在主进程运行结束后无需额外担心子进程是否关闭，避免了独立子进程的运行。</p>
+<h3 id="进程等待"><a href="#进程等待" class="headerlink" title="进程等待"></a>进程等待</h3><p>上面的运行效果其实不太符合我们预期：主进程运行结束时，子进程（守护进程）也都退出了，子进程什么都没来得及执行。</p>
+<p>加入 join 方法即可让所有子进程都执行完再结束：</p>
+<pre class="language-python" data-language="python"><code class="language-python">processes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+<span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    p <span class="token operator">=</span> MyProcess<span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+    processes<span class="token punctuation">.</span>append<span class="token punctuation">(</span>p<span class="token punctuation">)</span>
+    p<span class="token punctuation">.</span>daemon <span class="token operator">=</span> <span class="token boolean">True</span>
+    p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+<span class="token keyword">for</span> p <span class="token keyword">in</span> processes<span class="token punctuation">:</span>
+    p<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Pid: 40866 LoopCount: 0
+Pid: 40867 LoopCount: 0
+Pid: 40868 LoopCount: 0
+Pid: 40866 LoopCount: 1
+Pid: 40867 LoopCount: 1
+Pid: 40868 LoopCount: 1
+Pid: 40867 LoopCount: 2
+Pid: 40868 LoopCount: 2
+Pid: 40868 LoopCount: 3
+Main Process ended</code></pre>
+<p>在调用 start 和 join 方法后，父进程就可以等待所有子进程都执行完毕后，再打印出结束的结果。</p>
+<p>默认情况下，join 是无限期的。也就是说，如果有子进程没有运行完毕，主进程会一直等待。这种情况下，如果子进程出现问题陷入了死循环，主进程也会无限等待下去。怎么解决这个问题呢？可以给 join 方法传递一个超时参数，代表最长等待秒数。如果子进程没有在这个指定秒数之内完成，会被强制返回，主进程不再会等待。也就是说这个参数设置了主进程等待该子进程的最长时间。</p>
+<p>例如这里我们传入 1，代表最长等待 1 秒，代码改写如下：</p>
+<pre class="language-python" data-language="python"><code class="language-python">processes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+<span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    p <span class="token operator">=</span> MyProcess<span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+    processes<span class="token punctuation">.</span>append<span class="token punctuation">(</span>p<span class="token punctuation">)</span>
+    p<span class="token punctuation">.</span>daemon <span class="token operator">=</span> <span class="token boolean">True</span>
+    p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+<span class="token keyword">for</span> p <span class="token keyword">in</span> processes<span class="token punctuation">:</span>
+    p<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span></code></pre>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Pid: 40970 LoopCount: 0
+Pid: 40971 LoopCount: 0
+Pid: 40970 LoopCount: 1
+Pid: 40971 LoopCount: 1
+Main Process ended</code></pre>
+<p>可以看到，有的子进程本来要运行 3 秒，结果运行 1 秒就被强制返回了，由于是守护进程，该子进程被终止了。</p>
+<h3 id="终止进程"><a href="#终止进程" class="headerlink" title="终止进程"></a>终止进程</h3><p>终止进程不止有守护进程这一种做法，也可以通过 terminate 方法来终止某个子进程，另外还可以通过 is_alive 方法判断进程是否还在运行：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> multiprocessing
+<span class="token keyword">import</span> time
+
+
+<span class="token keyword">def</span> <span class="token function">process</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Starting'</span><span class="token punctuation">)</span>
+    time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Finished'</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    p <span class="token operator">=</span> multiprocessing<span class="token punctuation">.</span>Process<span class="token punctuation">(</span>target<span class="token operator">=</span>process<span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Before:'</span><span class="token punctuation">,</span> p<span class="token punctuation">,</span> p<span class="token punctuation">.</span>is_alive<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'During:'</span><span class="token punctuation">,</span> p<span class="token punctuation">,</span> p<span class="token punctuation">.</span>is_alive<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    p<span class="token punctuation">.</span>terminate<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Terminate:'</span><span class="token punctuation">,</span> p<span class="token punctuation">,</span> p<span class="token punctuation">.</span>is_alive<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    p<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Joined:'</span><span class="token punctuation">,</span> p<span class="token punctuation">,</span> p<span class="token punctuation">.</span>is_alive<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span></code></pre>
+<p>此处用 Process 创建了一个进程，接着调用 start 方法启动这个进程，然后调用 terminate 方法将进程终止，最后调用 join 方法。</p>
+<p>另外，在进程运行不同的阶段，还通过 is_alive 方法判断当前进程是否还在运行。</p>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Before: &lt;Process(Process-1, initial)&gt; False
+During: &lt;Process(Process-1, started)&gt; True
+Terminate: &lt;Process(Process-1, started)&gt; True
+Joined: &lt;Process(Process-1, stopped[SIGTERM])&gt; False</code></pre>
+<p>这里有一个值得注意的地方，在调用 terminate 方法之后，用 is_alive 方法获取进程的状态发现依然还是运行状态。在调用 join 方法之后，is_alive 方法获取进程的运行状态才变为终止状态。</p>
+<p>所以，在调用 terminate 方法之后，记得要调用一下 join 方法，这里调用 join 方法可以为进程提供时间来更新对象状态，用来反映出最终的进程终止效果。</p>
+<h3 id="进程互斥锁"><a href="#进程互斥锁" class="headerlink" title="进程互斥锁"></a>进程互斥锁</h3><p>在上面的一些实例中，可能会遇到如下的运行结果：</p>
+<pre class="language-none"><code class="language-none">Pid: 73993 LoopCount: 0
+Pid: 73993 LoopCount: 1
+Pid: 73994 LoopCount: 0Pid: 73994 LoopCount: 1
+
+Pid: 73994 LoopCount: 2
+Pid: 73995 LoopCount: 0
+Pid: 73995 LoopCount: 1
+Pid: 73995 LoopCount: 2
+Pid: 73995 LoopCount: 3
+Main Process ended</code></pre>
+<p><strong>有的输出结果没有换行。</strong></p>
+<p>这种情况是由多个进程并行执行导致的，两个进程同时进行了输出，结果第一个进程的换行没有来得及输出，第二个进程就输出了结果，导致最终输出没有换行。</p>
+<p>如果能保证多个进程运行期间的任一时间，只能一个进程输出，其他进程等待，等刚才那个进程输出完毕之后，另一个进程再进行输出，这样就不会出现输出没有换行的现象了。</p>
+<p>这种解决方案实际上就是实现了进程互斥，避免了多个进程同时抢占临界区（输出）资源。</p>
+<p><strong>可以通过 multiprocessing 中的 Lock 来实现。</strong></p>
+<p>Lock，即锁，在一个进程输出时，加锁，其他进程等待。等此进程执行结束后，释放锁，其他进程可以进行输出。</p>
+<p><strong>首先实现一个不加锁的实例：</strong></p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> multiprocessing <span class="token keyword">import</span> Process<span class="token punctuation">,</span> Lock
+<span class="token keyword">import</span> time
+
+
+<span class="token keyword">class</span> <span class="token class-name">MyProcess</span><span class="token punctuation">(</span>Process<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> loop<span class="token punctuation">,</span> lock<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        Process<span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>self<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>loop <span class="token operator">=</span> loop
+        self<span class="token punctuation">.</span>lock <span class="token operator">=</span> lock
+
+
+    <span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> count <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>loop<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">0.1</span><span class="token punctuation">)</span>
+            <span class="token comment"># self.lock.acquire()</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Pid: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>self<span class="token punctuation">.</span>pid<span class="token punctuation">&#125;</span></span><span class="token string"> LoopCount: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>count<span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+            <span class="token comment"># self.lock.release()</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    lock <span class="token operator">=</span> Lock<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">15</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        p <span class="token operator">=</span> MyProcess<span class="token punctuation">(</span>i<span class="token punctuation">,</span> lock<span class="token punctuation">)</span>
+        p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Pid: 74030 LoopCount: 0
+Pid: 74031 LoopCount: 0
+Pid: 74032 LoopCount: 0
+Pid: 74033 LoopCount: 0
+Pid: 74034 LoopCount: 0
+Pid: 74030 LoopCount: 1
+Pid: 74031 LoopCount: 1
+Pid: 74032 LoopCount: 1Pid: 74033 LoopCount: 1
+
+Pid: 74034 LoopCount: 1
+Pid: 74030 LoopCount: 2
+...</code></pre>
+<p>可以看到运行结果中有些输出已经出现了不换行的问题。</p>
+<p>对其加锁，取消掉刚才代码中的两行注释，重新运行。</p>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Pid: 74061 LoopCount: 0
+Pid: 74062 LoopCount: 0
+Pid: 74063 LoopCount: 0
+Pid: 74064 LoopCount: 0
+Pid: 74065 LoopCount: 0
+Pid: 74061 LoopCount: 1
+Pid: 74062 LoopCount: 1
+Pid: 74063 LoopCount: 1
+Pid: 74064 LoopCount: 1
+Pid: 74065 LoopCount: 1
+Pid: 74061 LoopCount: 2
+Pid: 74062 LoopCount: 2
+Pid: 74064 LoopCount: 2
+...</code></pre>
+<p>这时输出效果就正常了。</p>
+<p>所以，在访问一些临界区资源时，使用 Lock 可以有效避免进程同时占用资源而导致的一些问题。</p>
+<h3 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h3><p>进程互斥锁可以使同一时刻只有一个进程能访问共享资源，如上面的例子所展示的那样，在同一时刻只能有一个进程输出结果。但有时候需要允许多个进程来访问共享资源，同时还需要限制能访问共享资源的进程的数量。</p>
+<p>这种需求该如何实现呢？可以用信号量，信号量是进程同步过程中一个比较重要的角色。它可以控制临界资源的数量，实现多个进程同时访问共享资源，限制进程的并发量。</p>
+<p><strong>可以用 multiprocessing 库中的 Semaphore 来实现信号量。</strong></p>
+<p>进程之间利用 Semaphore 做到多个进程共享资源，同时又限制同时可访问的进程数量：</p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> multiprocessing <span class="token keyword">import</span> Process<span class="token punctuation">,</span> Semaphore<span class="token punctuation">,</span> Lock<span class="token punctuation">,</span> Queue
+<span class="token keyword">import</span> time
+
+
+<span class="token builtin">buffer</span> <span class="token operator">=</span> Queue<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+empty <span class="token operator">=</span> Semaphore<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+full <span class="token operator">=</span> Semaphore<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
+lock <span class="token operator">=</span> Lock<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">class</span> <span class="token class-name">Consumer</span><span class="token punctuation">(</span>Process<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">global</span> <span class="token builtin">buffer</span><span class="token punctuation">,</span> empty<span class="token punctuation">,</span> full<span class="token punctuation">,</span> lock
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            full<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            lock<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token builtin">buffer</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Consumer pop an element'</span><span class="token punctuation">)</span>
+            time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+            lock<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            empty<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">class</span> <span class="token class-name">Producer</span><span class="token punctuation">(</span>Process<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">global</span> <span class="token builtin">buffer</span><span class="token punctuation">,</span> empty<span class="token punctuation">,</span> full<span class="token punctuation">,</span> lock
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            empty<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            lock<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token builtin">buffer</span><span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Producer append an element'</span><span class="token punctuation">)</span>
+            time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+            lock<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            full<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    p <span class="token operator">=</span> Producer<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    c <span class="token operator">=</span> Consumer<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    p<span class="token punctuation">.</span>daemon <span class="token operator">=</span> c<span class="token punctuation">.</span>daemon <span class="token operator">=</span> <span class="token boolean">True</span>
+    p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    c<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    p<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    c<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Main Process Ended'</span><span class="token punctuation">)</span></code></pre>
+
+<blockquote>
+<p>如上代码实现了经典的生产者和消费者问题。它定义了两个进程类，一个是消费者，一个是生产者。</p>
+</blockquote>
+<p>另外，这里使用 multiprocessing 中的 Queue 定义了一个共享队列，然后定义了两个信号量 Semaphore，一个代表缓冲区空余数，一个表示缓冲区占用数。</p>
+<p>生产者 Producer 使用 acquire 方法来占用一个缓冲区位置，缓冲区空闲区大小减 1，接下来进行加锁，对缓冲区进行操作，然后释放锁，最后让代表占用的缓冲区位置数量加 1，消费者则相反。</p>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Producer append an element
+Producer append an element
+Consumer pop an element
+Consumer pop an element
+Producer append an element
+Producer append an element
+Consumer pop an element
+Consumer pop an element
+Producer append an element
+Producer append an element
+Consumer pop an element
+Consumer pop an element
+Producer append an element
+Producer append an element</code></pre>
+<p>可以发现两个进程在交替运行，生产者先放入缓冲区物品，然后消费者取出，不停地进行循环。 可以通过上面的例子来体会信号量 Semaphore 的用法，通过 Semaphore 很好地控制了进程对资源的并发访问数量。</p>
+<h3 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h3><p>在上面的例子中使用 Queue 作为进程通信的共享队列使用。</p>
+<p>而如果把上面程序中的 Queue 换成普通的 list，是完全起不到效果的，因为进程和进程之间的资源是不共享的。即使在一个进程中改变了这个 list，在另一个进程也不能获取到这个 list 的状态，所以声明全局变量对多进程是没有用处的。</p>
+<p>那进程如何共享数据呢？可以用 Queue，即队列。<strong>这里的队列指的是 multiprocessing 里面的 Queue。</strong></p>
+<p>依然用上面的例子，<strong>一个进程向队列中放入随机数据，然后另一个进程取出数据：</strong></p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> multiprocessing <span class="token keyword">import</span> Process<span class="token punctuation">,</span> Semaphore<span class="token punctuation">,</span> Lock<span class="token punctuation">,</span> Queue
+<span class="token keyword">import</span> time
+<span class="token keyword">from</span> random <span class="token keyword">import</span> random
+
+
+<span class="token builtin">buffer</span> <span class="token operator">=</span> Queue<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+empty <span class="token operator">=</span> Semaphore<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+full <span class="token operator">=</span> Semaphore<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
+lock <span class="token operator">=</span> Lock<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">class</span> <span class="token class-name">Consumer</span><span class="token punctuation">(</span>Process<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">global</span> <span class="token builtin">buffer</span><span class="token punctuation">,</span> empty<span class="token punctuation">,</span> full<span class="token punctuation">,</span> lock
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            full<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            lock<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Consumer get </span><span class="token interpolation"><span class="token punctuation">&#123;</span><span class="token builtin">buffer</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+            time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+            lock<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            empty<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">class</span> <span class="token class-name">Producer</span><span class="token punctuation">(</span>Process<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">global</span> <span class="token builtin">buffer</span><span class="token punctuation">,</span> empty<span class="token punctuation">,</span> full<span class="token punctuation">,</span> lock
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            empty<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            lock<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            num <span class="token operator">=</span> random<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Producer put </span><span class="token interpolation"><span class="token punctuation">&#123;</span>num<span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+            <span class="token builtin">buffer</span><span class="token punctuation">.</span>put<span class="token punctuation">(</span>num<span class="token punctuation">)</span>
+            time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+            lock<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            full<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    p <span class="token operator">=</span> Producer<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    c <span class="token operator">=</span> Consumer<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    p<span class="token punctuation">.</span>daemon <span class="token operator">=</span> c<span class="token punctuation">.</span>daemon <span class="token operator">=</span> <span class="token boolean">True</span>
+    p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    c<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    p<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    c<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Main Process Ended'</span><span class="token punctuation">)</span></code></pre>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Producer put  0.719213647437
+Producer put  0.44287326683
+Consumer get 0.719213647437
+Consumer get 0.44287326683
+Producer put  0.722859424381
+Producer put  0.525321338921
+Consumer get 0.722859424381
+Consumer get 0.525321338921</code></pre>
+<p>在上面的例子中声明了两个进程，一个进程为生产者 Producer，另一个为消费者 Consumer，生产者不断向 Queue 里面添加随机数，消费者不断从队列里面取随机数。</p>
+<p>生产者在放数据的时候调用了 Queue 的 put 方法，消费者在取的时候使用了 get 方法，这样就通过 Queue 实现两个进程的数据共享了。</p>
+<h3 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h3><p>刚才使用 Queue 实现了进程间的数据共享，那么进程之间直接通信，如收发信息，用什么比较好呢？可以用 Pipe，管道。</p>
+<p>管道，可以把它理解为两个进程之间通信的通道。管道可以是单向的，即 half-duplex：一个进程负责发消息，另一个进程负责收消息；也可以是双向的 duplex，即互相收发消息。</p>
+<p>默认声明 Pipe 对象是双向管道，如果要创建单向管道，可以在初始化的时候传入 deplex 参数为 False。</p>
+<p><strong>实例：</strong></p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> multiprocessing <span class="token keyword">import</span> Process<span class="token punctuation">,</span> Pipe
+
+<span class="token keyword">class</span> <span class="token class-name">Consumer</span><span class="token punctuation">(</span>Process<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> pipe<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        Process<span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>self<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>pipe <span class="token operator">=</span> pipe
+
+    <span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>pipe<span class="token punctuation">.</span>send<span class="token punctuation">(</span><span class="token string">'Consumer Words'</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Consumer Received: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>self<span class="token punctuation">.</span>pipe<span class="token punctuation">.</span>recv<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Producer</span><span class="token punctuation">(</span>Process<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> pipe<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        Process<span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>self<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>pipe <span class="token operator">=</span> pipe
+
+    <span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Producer Received: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>self<span class="token punctuation">.</span>pipe<span class="token punctuation">.</span>recv<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>pipe<span class="token punctuation">.</span>send<span class="token punctuation">(</span><span class="token string">'Producer Words'</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    pipe <span class="token operator">=</span> Pipe<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    p <span class="token operator">=</span> Producer<span class="token punctuation">(</span>pipe<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    c <span class="token operator">=</span> Consumer<span class="token punctuation">(</span>pipe<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    p<span class="token punctuation">.</span>daemon <span class="token operator">=</span> c<span class="token punctuation">.</span>daemon <span class="token operator">=</span> <span class="token boolean">True</span>
+    p<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    c<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    p<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    c<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Main Process Ended'</span><span class="token punctuation">)</span></code></pre>
+
+<p>在这个例子里声明了一个默认为双向的管道，然后将管道的两端分别传给两个进程。两个进程互相收发。</p>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Producer Received: Consumer Words
+Consumer Received: Producer Words
+Main Process Ended</code></pre>
+<p>管道 Pipe 就像进程之间搭建的桥梁，利用它就可以很方便地实现进程间通信了。</p>
+<h3 id="进程池"><a href="#进程池" class="headerlink" title="进程池"></a>进程池</h3><p>根据前面知道了可以使用 Process 来创建进程，同时也知道了如何用 Semaphore 来控制进程的并发执行数量。</p>
+<p>假如现在有 10000 个任务，每个任务需要启动一个进程来执行，并且一个进程运行完毕之后要紧接着启动下一个进程，同时还需要控制进程的并发数量，不能并发太高，不然 CPU 处理不过来（如果同时运行的进程能维持在一个最高恒定值当然利用率是最高的）。</p>
+<p>那么该如何来实现这个需求呢？</p>
+<p>用 Process 和 Semaphore 可以实现，但是实现起来比较烦琐。而这种需求在平时又是非常常见的。此时就可以派上进程池了，即 multiprocessing 中的 Pool。</p>
+<p>Pool 可以提供指定数量的进程，供用户调用，当有新的请求提交到 pool 中时，如果池还没有满，就会创建一个新的进程用来执行该请求；但如果池中的进程数已经达到规定最大值，那么该请求就会等待，直到池中有进程结束，才会创建新的进程来执行它。</p>
+<p><strong>实例：</strong></p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> multiprocessing <span class="token keyword">import</span> Pool
+<span class="token keyword">import</span> time
+
+
+<span class="token keyword">def</span> <span class="token function">function</span><span class="token punctuation">(</span>index<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'Start process: </span><span class="token interpolation"><span class="token punctuation">&#123;</span>index<span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">)</span>
+    time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'End process </span><span class="token interpolation"><span class="token punctuation">&#123;</span>index<span class="token punctuation">&#125;</span></span><span class="token string">'</span></span><span class="token punctuation">,</span> <span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    pool <span class="token operator">=</span> Pool<span class="token punctuation">(</span>processes<span class="token operator">=</span><span class="token number">3</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        pool<span class="token punctuation">.</span>apply_async<span class="token punctuation">(</span>function<span class="token punctuation">,</span> args<span class="token operator">=</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Main Process started'</span><span class="token punctuation">)</span>
+    pool<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    pool<span class="token punctuation">.</span>join<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'Main Process ended'</span><span class="token punctuation">)</span></code></pre>
+<p>在这个例子中声明了一个大小为 3 的进程池，通过 processes 参数来指定，如果不指定，那么会自动根据处理器内核来分配进程数。接着使用 apply_async 方法将进程添加进去，args 可以用来传递参数。</p>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">Main Process started
+Start process: 0
+Start process: 1
+Start process: 2
+End process 0
+End process 1
+End process 2
+Start process: 3
+End process 3
+Main Process ended</code></pre>
+<p>进程池大小为 3，所以最初可以看到有 3 个进程同时执行，第4个进程在等待，在有进程运行完毕之后，第4个进程马上跟着运行，出现了如上的运行效果。</p>
+<p>最后，要记得调用 close 方法来关闭进程池，使其不再接受新的任务，然后调用 join 方法让主进程等待子进程的退出，等子进程运行完毕之后，主进程接着运行并结束。</p>
+<p>不过上面的写法多少有些烦琐，这里再介绍进程池一个更好用的 map 方法，可以将上述写法简化很多。</p>
+<p>map 方法是怎么用的呢？第一个参数就是要启动的进程对应的执行方法，第 2 个参数是一个可迭代对象，其中的每个元素会被传递给这个执行方法。</p>
+<p>举个例子：现在有一个 list，里面包含了很多 URL，另外也定义了一个方法用来抓取每个 URL 内容并解析，那么可以直接在 map 的第一个参数传入方法名，第 2 个参数传入 URL 数组。</p>
+<p><strong>实例：</strong></p>
+<pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> multiprocessing <span class="token keyword">import</span> Pool
+<span class="token keyword">import</span> urllib<span class="token punctuation">.</span>request
+<span class="token keyword">import</span> urllib<span class="token punctuation">.</span>error
+
+
+<span class="token keyword">def</span> <span class="token function">scrape</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        urllib<span class="token punctuation">.</span>request<span class="token punctuation">.</span>urlopen<span class="token punctuation">(</span>url<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'URL </span><span class="token interpolation"><span class="token punctuation">&#123;</span>url<span class="token punctuation">&#125;</span></span><span class="token string"> Scraped'</span></span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> <span class="token punctuation">(</span>urllib<span class="token punctuation">.</span>error<span class="token punctuation">.</span>HTTPError<span class="token punctuation">,</span> urllib<span class="token punctuation">.</span>error<span class="token punctuation">.</span>URLError<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'URL </span><span class="token interpolation"><span class="token punctuation">&#123;</span>url<span class="token punctuation">&#125;</span></span><span class="token string"> not Scraped'</span></span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    pool <span class="token operator">=</span> Pool<span class="token punctuation">(</span>processes<span class="token operator">=</span><span class="token number">3</span><span class="token punctuation">)</span>
+    urls <span class="token operator">=</span> <span class="token punctuation">[</span>
+        <span class="token string">'https://www.baidu.com'</span><span class="token punctuation">,</span>
+        <span class="token string">'http://www.meituan.com/'</span><span class="token punctuation">,</span>
+        <span class="token string">'http://blog.csdn.net/'</span><span class="token punctuation">,</span>
+        <span class="token string">'http://xxxyxxx.net'</span>
+    <span class="token punctuation">]</span>
+    pool<span class="token punctuation">.</span><span class="token builtin">map</span><span class="token punctuation">(</span>scrape<span class="token punctuation">,</span> urls<span class="token punctuation">)</span>
+    pool<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
+<p>这个例子中先定义了一个 scrape 方法，它接收一个参数 url，这里就是请求了一下这个链接，然后输出爬取成功的信息，如果发生错误，则会输出爬取失败的信息。</p>
+<p>首先要初始化一个 Pool，指定进程数为 3。然后声明一个 urls 列表，接着调用了 map 方法，第 1 个参数就是进程对应的执行方法，第 2 个参数就是 urls 列表，map 方法会依次将 urls 的每个元素作为 scrape 的参数传递并启动一个新的进程，加到进程池中执行。</p>
+<p><strong>运行结果：</strong></p>
+<pre class="language-none"><code class="language-none">URL https:&#x2F;&#x2F;www.baidu.com Scraped
+URL http:&#x2F;&#x2F;xxxyxxx.net not Scraped
+URL http:&#x2F;&#x2F;blog.csdn.net&#x2F; Scraped
+URL http:&#x2F;&#x2F;www.meituan.com&#x2F; Scraped</code></pre>
+<p>这样就可以实现 3 个进程并行运行。不同的进程相互独立地输出了对应的爬取结果。</p>
+<p>可以看到，利用 Pool 的 map 方法非常方便地实现了多进程的执行。</p>
+<p>Reference：<a target="_blank" rel="noopener" href="https://kaiwu.lagou.com/course/courseInfo.htm?courseId=46#/detail/pc?id=1667">https://kaiwu.lagou.com/course/courseInfo.htm?courseId=46#/detail/pc?id=1667</a></p>
+</div><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="Donate" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="qr" style="display:none;"><div style="display:inline-block"><a href="/images/Ali-Pay.jpg"><img loading="lazy" src="/images/Ali-Pay.jpg" alt="Ali-Pay" title="Ali-Pay"></a><div><span style="color:#00A3EE"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-alipay-line"></use></svg></span></div></div><div style="display:inline-block"><a href="/images/WeChatPay.jpg"><img loading="lazy" src="/images/WeChatPay.jpg" alt="WeChat Pay" title="WeChat Pay"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>Post author: </strong>Giyn</li><li class="post-copyright-link"><strong>Post link: </strong><a href="http://giyn.work/posts/ad732d83/" title="多进程基本原理及 Python 实现">http://giyn.work/posts/ad732d83/</a></li><li class="post-copyright-license"><strong>Copyright Notice: </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> unless stating additionally.</li></ul><script>document.addEventListener('copy', function (event) {
+  const clipboardData = event.clipboardData || window.clipboardData;
+  if (!clipboardData) { return; }
+  const text = window.getSelection().toString();
+  if (text) {
+    event.preventDefault();
+    clipboardData.setData('text/plain', text + '\n\nPost author: Giyn\nPost link: http://giyn.work/posts/ad732d83/\nCopyright Notice: All articles in this blog are licensed under CC BY-NC-SA 4.0 unless stating additionally.');
+  }
+});</script></section></article><div class="post-nav"><div class="post-nav-item"><a class="post-nav-prev" href="/posts/abf1e3d2/" rel="prev" title="Ajax 的原理和分析"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-left-s-line"></use></svg><span class="post-nav-text">Ajax 的原理和分析</span></a></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/61d9b63a/" rel="next" title="多线程基本原理及 Python 实现"><span class="post-nav-text">多线程基本原理及 Python 实现</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div></main><footer class="sidebar-translate" id="footer"><div class="copyright"><span>&copy; 2020 – 2021 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> Giyn</span></div><div class="powered"><span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> v5.1.1</span><span class="footer-separator">|</span><span>Theme - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.0.0</span></div><div class="live_time"><span>本博客已运行</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  window.setTimeout(blog_live_time, 1000);
+  const start = new Date('2020-09-03T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = " " + passDay + " 天 " + passHour + " 小时 " + passMinute + " 分 " + passSecond + " 秒";
+}
+blog_live_time();
+</script></div></footer><a class="hty-icon-button" id="goUp" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><a class="popup-trigger hty-icon-button icon-search" id="search" href="javascript:;" title="Search"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-search-line"></use></svg></span></a><script>window.addEventListener("DOMContentLoaded", () => {
+  // Handle and trigger popup window
+  document.querySelector(".popup-trigger").addEventListener("click", () => {
+    document.querySelector(".popup").classList.add("show");
+    setTimeout(() => {
+      document.querySelector(".search-input").focus();
+    }, 100);
+  });
+
+  // Monitor main search box
+  const onPopupClose = () => {
+    document.querySelector(".popup").classList.remove("show");
+  };
+
+  document.querySelector(".popup-btn-close").addEventListener("click", () => {
+    onPopupClose();
+  });
+
+  window.addEventListener("keyup", event => {
+    if (event.key === "Escape") {
+      onPopupClose();
+    }
+  });
+});
+</script><script src="/js/search/local-search.js" defer></script><div class="popup search-popup"><div class="search-header"><span class="popup-btn-close close-icon hty-icon-button"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-close-line"></use></svg></span></div><div class="search-input-container"><input class="search-input" id="local-search-input" type="text" placeholder="Searching..." value=""></div><div id="local-search-result"></div></div><script>const date = new Date();
+const today = (date.getMonth() + 1) + "-" + date.getDate()
+const mourn_days = ["4-4"]
+if (mourn_days.includes(today)) {
+  document.documentElement.style.filter = "grayscale(1)";
+}</script></div><script defer src="/js/utils.js"></script><script defer src="/js/hexo-theme-yun.js"></script></body></html>

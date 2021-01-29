@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="Giyn"><meta name="copyright" content="Giyn"><meta name="generator" content="Hexo 5.1.1"><meta name="theme" content="hexo-theme-yun"><title>Multiple Dimensional Scaling 降维算法 | Giyn's Blog</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="none" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.1.19/dist/yun/yun-markdown.min.css"><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>document.addEventListener("DOMContentLoaded", () => {
+  [".post-card",".post-content img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+});
+</script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"></script><script>document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false},
+      {left: "\\(", right: "\\)", display: false},
+      {left: "\\[", right: "\\]", display: true}
+    ]
+  });
+});</script><link rel="shortcut icon" type="image/svg+xml" href="/Giyn.ico"><link rel="mask-icon" href="/Giyn.ico" color="#6200ee"><link rel="alternate icon" href="/yun.ico"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="preload" href="/js/utils.js" as="script"><link rel="preload" href="/js/hexo-theme-yun.js" as="script"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="/css/hexo-theme-yun.css"><link rel="alternate" href="/atom.xml" title="Giyn's Blog" type="application/atom+xml"><script id="yun-config">
+    const Yun = window.Yun || {};
+    window.CONFIG = {"root":"/","title":"许继元的博客","version":"1.0.0","anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"/data/sentences.json"},"local_search":{"path":"/search.xml"},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]}};
+  </script><script src="//at.alicdn.com/t/font_1140697_stqaphw3j4.js" async></script><meta name="description" content="在高维情形下出现的数据样本稀疏、距离计算困难等问题，是所有机器学习方法共同面临的严重障碍，被称为“维数灾难” (curse ofdimensionality)。 缓解维数灾难的一个重要途径是降维 (dimension reduction)，亦称“维数约简”，即通过某种数学变换将原始高维属性空间转变为一个低维“子空间”(subspace)，在这个子空间中样本密度大幅提高，距离计算也变得更为容易。为什">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Multiple Dimensional Scaling 降维算法">
+<meta property="og:url" content="http://giyn.work/posts/3a002fbb/index.html">
+<meta property="og:site_name" content="Giyn&#39;s Blog">
+<meta property="og:description" content="在高维情形下出现的数据样本稀疏、距离计算困难等问题，是所有机器学习方法共同面临的严重障碍，被称为“维数灾难” (curse ofdimensionality)。 缓解维数灾难的一个重要途径是降维 (dimension reduction)，亦称“维数约简”，即通过某种数学变换将原始高维属性空间转变为一个低维“子空间”(subspace)，在这个子空间中样本密度大幅提高，距离计算也变得更为容易。为什">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200819162849161.png?1x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTk2MTc3NA==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200819162909635.png?1x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTk2MTc3NA==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="article:published_time" content="2020-09-28T06:50:26.000Z">
+<meta property="article:modified_time" content="2020-09-28T07:11:19.627Z">
+<meta property="article:author" content="Giyn">
+<meta property="article:tag" content="MachineLearning">
+<meta property="article:tag" content="Dimensionality Reduction">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20200819162849161.png?1x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTk2MTc3NA==,size_16,color_FFFFFF,t_70#pic_center"><script src="/js/ui/mode.js"></script><link id="light-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism.css" media="(prefers-color-scheme: light)"><link id="dark-prism-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism-tomorrow.css" media="(prefers-color-scheme: dark)"></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script defer src="/js/ui/fireworks.js"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button" data-target="post-toc-wrap" title="Table of Contents"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button sidebar-nav-active" data-target="site-overview-wrap" title="Overview"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel sidebar-panel-active" id="site-overview-wrap"><div class="site-info mickey-mouse"><a class="site-author-avatar" href="/about/" title="Giyn"><img width="96" loading="lazy" src="/images/avatar.png" alt="Giyn"></a><div class="site-author-name"><a href="/about/">Giyn</a></div><a class="site-name" href="/about/site.html">Giyn's Blog</a><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="Home"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="Archives"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">60</span></a></div><div class="site-state-item"><a href="/categories/" title="Categories"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">21</span></a></div><div class="site-state-item"><a href="/tags/" title="Tags"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">41</span></a></div><a class="site-state-item hty-icon-button" href="/about/"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-open-arm-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="/atom.xml" title="RSS" target="_blank" style="color:orange"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-rss-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/Giyn" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="mailto:giyn.jy@gmail.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="http://wpa.qq.com/msgrd?v=3&amp;uin=490601115&amp;site=qq&amp;menu=yes" title="QQ" target="_blank" style="color:#12B7F5"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-qq-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://space.bilibili.com/443380473" title="bilibili" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://twitter.com/jiyuan_xu" title="Twitter" target="_blank" style="color:#1da1f2"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-twitter-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content">This post does not have a Table of Contents</div></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="post-block" itemscope itemtype="https://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://giyn.work/posts/3a002fbb/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="Giyn"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="Giyn's Blog"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">Multiple Dimensional Scaling 降维算法<a class="post-edit-link" href="https://github.com/Giyn/giyn.github.io/tree/hexo/source/_posts/Multiple Dimensional Scaling 降维算法.md" target="_blank" title="Edit this post" rel="noopener"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-edit-line"></use></svg></a></h1><div class="post-meta"><div class="post-time" style="display:block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <span class="post-meta-icon-text">Posted on</span> <time title="Created: 2020-09-28 14:50:26" itemprop="dateCreated datePublished" datetime="2020-09-28T14:50:26+08:00">2020-09-28</time></div><span class="post-count"><span class="post-symbolcount"><span class="post-meta-item-icon" title="Words count in article"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-file-word-line"></use></svg></span> <span title="Words count in article">1.3k</span><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Reading time"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-timer-line"></use></svg></span> <span title="Reading time">5m</span></span></span><div class="post-classify"><span class="post-category"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span> <span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category" href="/categories/MachineLearning/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">MachineLearning</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag" href="/tags/MachineLearning/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">MachineLearning</span></a><a class="tag" href="/tags/Dimensionality-Reduction/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">Dimensionality Reduction</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body" style="--smc-primary:#6200ee;"><p>在高维情形下出现的数据样本稀疏、距离计算困难等问题，是所有机器学习方法共同面临的严重障碍，被称为“维数灾难” (curse ofdimensionality)。</p>
+<p>缓解维数灾难的一个重要途径是降维 (dimension reduction)，亦称“维数约简”，即通过某种数学变换将原始高维属性空间转变为一个低维“子空间”(subspace)，在这个子空间中样本密度大幅提高，距离计算也变得更为容易。为什么能进行降维？这是因为在很多时候，人们观测或收集到的数据样本虽是高维的，但与学习任务密切相关的也许仅是某个低维分布，即高维空间中的一个低维“ 嵌入” (embedding)。下图给出了一个直观的例子。原始高维空间中的样本点，在这个低维嵌入子空间中更容易进行学习。</p>
+<p><img src="https://img-blog.csdnimg.cn/20200819162849161.png?1x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTk2MTc3NA==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述" loading="lazy"></p>
+<p>若要求原始空间中样本之间的距离在低维空间中得以保持，如上图所示，即得到“多维缩放” (Multiple Dimensional Scaling，简称 $MDS$ ) 这样一种经典的降维方法。下面做一个简单的介绍。</p>
+<p>假定 $m$ 个样本在原始空间的距离矩阵为 $D∈\mathbb{R}^{m×m}$，其第 $i$ 行 $j$ 列的元素 $dist_{ij}$ 为样本 $x_i$ 到 $x_j$ 的距离。我们的目标是获得样本在 $d’$ 维空间的表示 $Z∈\mathbb{R}^{d’×m},d’≤d$，且任意两个样本在 $d’$ 维空间中的欧氏距离等于原始空间中的距离，即 $||z_i-z_j||=dist_{ij}$。</p>
+<p>令 $B=Z^TZ∈\mathbb{R}^{m×m}$，其中 $B$ 为降维后样本的内积矩阵，$b_{ij}=z_i^Tz_j$，有</p>
+<div>
+    $$\begin{aligned}
+\operatorname{dist}_{i j}^{2} &=\left\|z_{i}\right\|^{2}+\left\|z_{j}\right\|^{2}-2 z_{i}^{T} z_{j} \\
+&=b_{i i}+b_{j j}-2 b_{i j}
+\end{aligned}$$
+</div>
+
+
+
+<blockquote>
+<p>$0∈\mathbb{R}^{d’}$ 为全零向量。</p>
+</blockquote>
+<p>为便于讨论，令降维后的样本 $Z$ 被中心化，即 $\sum^m_{i=1}z_i=0$。显然，矩阵 $B$ 的行与列之和均为零，即 $\sum^m_{i=1}b_{ij}=\sum^m_{j=1}b_{ij}0$。易知</p>
+<div>
+    $$\sum^m_{i=1}dist^2_{ij}=tr(B)+mb_{jj}\,\,,\tag{4}$$
+    $$\sum^m_{j=1}dist^2_{ij}=tr(B)+mb_{ii}\,\,,\tag{5}$$
+    $$\sum^m_{i=1}\sum^m_{j=1}dist^2_{ij}=2m\,tr(B)\,\,,\tag{6}$$
+</div>
+
+
+
+<p>其中 $tr(·)$ 表示矩阵的迹 (trace)，$tr(B)=\sum^m_{i=1}||z_i||^2$。令</p>
+<div>
+    $$dist_{i.}^2=\frac{1}{m}\sum^m_{j=1}dist_{ij}^2\,\,,\tag{7}$$
+    $$dist_{.j}^2=\frac{1}{m}\sum^m_{j=1}dist_{ij}^2\,\,,\tag{8}$$
+    $$dist_{..}^2=\frac{1}{m^2}\sum^m_{i=1}\sum^m_{j=1}dist_{ij}^2\,\,,\tag{9}$$
+</div>
+
+
+
+<p>由式 (3) 和式 (4)~(9) 可得</p>
+<div>
+    $$b_{ij}=-\frac{1}{2}(dist_{ij}^2-dist^2_{i.}-dist^2_{.j}+dist^2_{..})\,\,,\tag{10}$$
+</div>
+
+
+
+<p>由此即可通过降维前后保持不变的距离矩阵 $D$ 求取内积矩阵 $B$。</p>
+<p>对矩阵 $B$ 做特征值分解 (eigenvalue decomposition)，$B=Ⅴ\Lambda Ⅴ^T$，其中 $\Lambda= diag(λ_ 1,λ_ 2,…,\lambda_d)$ 为特征值构成的对角矩阵，$λ_ 1≥\lambda_2≥…≥\lambda_d$，$V$ 为特征向量矩阵。假定其中有 $d^*$ 个非零特征值，它们构成对角矩阵 $\Lambda_ * =diag(\lambda_1,\lambda_2,…,\lambda_{d^*})$。令 $Ⅴ _ *$ 表示相应的特征向量矩阵，则 $Z$ 可表达为</p>
+<div>
+    $$Z=\Lambda_*^{1/2}Ⅴ^T_*∈\mathbb{R}^{d^*×m}\,\,.\tag{11}$$
+</div>
+
+
+<p>在现实应用中为了有效降维，往往仅需降维后的距离与原始空间中的距离尽可能接近，而不必严格相等。此时可取 $d’\ll d$ 个最大特征值构成对角矩阵 $\tilde{\Lambda}=diag(\lambda_1,\lambda_2,…,\lambda_{d’})$，令 $\tilde{Ⅴ}$ 表示相应的特征向量矩阵，则 $Z$ 可表达为</p>
+<div>
+    $$Z=\tilde{\Lambda}^{1/2}\tilde{Ⅴ}^T∈\mathbb{R}^{d'×m}\,\,.\tag{12}$$
+</div>
+
+
+
+<p>下图给出了 $MDS$ 算法的描述：</p>
+<p><img src="https://img-blog.csdnimg.cn/20200819162909635.png?1x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTk2MTc3NA==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述" loading="lazy"></p>
+<p>一般来说，欲获得低维子空间，最简单的是对原始高维空间进行线性变换。给定 $d$ 维空间中的样本 $X=(x_1,x_2,…,x_m)∈\mathbb{R}^{d×m}$，变换之后得到 $d’≤d$ 维空间中的样本</p>
+<div>
+    $$Z=W^TX\,\,,\tag{13}$$
+</div>
+
+
+
+<blockquote>
+<p>通常令 $d’\ll d$。</p>
+</blockquote>
+<p>其中 $W∈\mathbb{R}^{d×d’}$ 变换矩阵，$Z∈R^{d’×m}$ 是样本在新空间中的表达。</p>
+<p>变换矩阵 $W$ 可视为 $d’$ 个 $d$ 维基向量，$z_i=W^Tx_i$ 是第 $i$ 个样本与这 $d’$ 个基向量分别做内积而得到的 $d’$ 维属性向量。换言之，$z_i$ 是原属性向量 $x_i$ 在新坐标系 ${w_1,w_2,…,w_{d’}}$ 中的坐标向量。若 $w_i$ 与 $w_j(i≠j)$ 正交，则新坐标系是一个正交坐标系，此时 $W$ 为正交变换。显然，新空间中的属性是原空间中属性的线性组合。</p>
+<p>基于线性变换来进行降维的方法称为线性降维方法，它们都符合式 (13) 的基本形式，不同之处是对低维子空间的性质有不同的要求，相当于对 $W$ 施加了不同的约束。在下一节我们将会看到，若要求低维子空间对样本具有最大可分性,则将得到一种极为常用的线性降维方法。</p>
+<p>对降维效果的评估，通常是比较降维前后学习器的性能，若性能有所提高则认为降维起到了作用。若将维数降至二维或三维，则可通过可视化技术来直观地判断降维效果。</p>
+<hr>
+<p>Reference：《机器学习》</p>
+</div><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="Donate" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="qr" style="display:none;"><div style="display:inline-block"><a href="/images/Ali-Pay.jpg"><img loading="lazy" src="/images/Ali-Pay.jpg" alt="Ali-Pay" title="Ali-Pay"></a><div><span style="color:#00A3EE"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-alipay-line"></use></svg></span></div></div><div style="display:inline-block"><a href="/images/WeChatPay.jpg"><img loading="lazy" src="/images/WeChatPay.jpg" alt="WeChat Pay" title="WeChat Pay"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>Post author: </strong>Giyn</li><li class="post-copyright-link"><strong>Post link: </strong><a href="http://giyn.work/posts/3a002fbb/" title="Multiple Dimensional Scaling 降维算法">http://giyn.work/posts/3a002fbb/</a></li><li class="post-copyright-license"><strong>Copyright Notice: </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> unless stating additionally.</li></ul><script>document.addEventListener('copy', function (event) {
+  const clipboardData = event.clipboardData || window.clipboardData;
+  if (!clipboardData) { return; }
+  const text = window.getSelection().toString();
+  if (text) {
+    event.preventDefault();
+    clipboardData.setData('text/plain', text + '\n\nPost author: Giyn\nPost link: http://giyn.work/posts/3a002fbb/\nCopyright Notice: All articles in this blog are licensed under CC BY-NC-SA 4.0 unless stating additionally.');
+  }
+});</script></section></article><div class="post-nav"><div class="post-nav-item"><a class="post-nav-prev" href="/posts/423cd474/" rel="prev" title="requests 库高级用法"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-left-s-line"></use></svg><span class="post-nav-text">requests 库高级用法</span></a></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/3f56ccc4/" rel="next" title="Bagging 和随机森林算法"><span class="post-nav-text">Bagging 和随机森林算法</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div></main><footer class="sidebar-translate" id="footer"><div class="copyright"><span>&copy; 2020 – 2021 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> Giyn</span></div><div class="powered"><span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> v5.1.1</span><span class="footer-separator">|</span><span>Theme - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.0.0</span></div><div class="live_time"><span>本博客已运行</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  window.setTimeout(blog_live_time, 1000);
+  const start = new Date('2020-09-03T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = " " + passDay + " 天 " + passHour + " 小时 " + passMinute + " 分 " + passSecond + " 秒";
+}
+blog_live_time();
+</script></div></footer><a class="hty-icon-button" id="goUp" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><a class="popup-trigger hty-icon-button icon-search" id="search" href="javascript:;" title="Search"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-search-line"></use></svg></span></a><script>window.addEventListener("DOMContentLoaded", () => {
+  // Handle and trigger popup window
+  document.querySelector(".popup-trigger").addEventListener("click", () => {
+    document.querySelector(".popup").classList.add("show");
+    setTimeout(() => {
+      document.querySelector(".search-input").focus();
+    }, 100);
+  });
+
+  // Monitor main search box
+  const onPopupClose = () => {
+    document.querySelector(".popup").classList.remove("show");
+  };
+
+  document.querySelector(".popup-btn-close").addEventListener("click", () => {
+    onPopupClose();
+  });
+
+  window.addEventListener("keyup", event => {
+    if (event.key === "Escape") {
+      onPopupClose();
+    }
+  });
+});
+</script><script src="/js/search/local-search.js" defer></script><div class="popup search-popup"><div class="search-header"><span class="popup-btn-close close-icon hty-icon-button"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-close-line"></use></svg></span></div><div class="search-input-container"><input class="search-input" id="local-search-input" type="text" placeholder="Searching..." value=""></div><div id="local-search-result"></div></div><script>const date = new Date();
+const today = (date.getMonth() + 1) + "-" + date.getDate()
+const mourn_days = ["4-4"]
+if (mourn_days.includes(today)) {
+  document.documentElement.style.filter = "grayscale(1)";
+}</script></div><script defer src="/js/utils.js"></script><script defer src="/js/hexo-theme-yun.js"></script></body></html>
